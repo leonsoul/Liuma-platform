@@ -22,15 +22,15 @@
           <el-dropdown-item command="personal">个人中心</el-dropdown-item>
           <el-dropdown-item command="system">配置中心</el-dropdown-item>
           <!-- <el-dropdown-item command="help">使用手册</el-dropdown-item> -->
-          <el-dropdown-item command="follow">关注我们</el-dropdown-item>
+          <!-- <el-dropdown-item command="follow">关注我们</el-dropdown-item>-->
           <el-dropdown-item command="logout">退出</el-dropdown-item>
         </el-dropdown-menu>
       </template>
     </el-dropdown>
     <!-- 使用手册 -->
-    <el-button size="small" class="align-right" type="text" style="margin-right: 15px" @click="openHelp">
-      <i class="el-icon-question" style="color: #606266"> 使用手册</i>
-    </el-button>
+<!--    <el-button size="small" class="align-right" type="text" style="margin-right: 15px" @click="openHelp">-->
+<!--      <i class="el-icon-question" style="color: #606266"> 使用手册</i>-->
+<!--    </el-button>-->
     <!-- 项目选择栏 -->
     <el-dropdown size="small" @command="changeProject" placement="bottom" class="align-right">
       <span class="dropdown-proj">
@@ -47,7 +47,7 @@
         </el-dropdown-menu>
       </template>
     </el-dropdown>
-    
+
     <!-- 公众号图片 -->
     <el-image-viewer v-if="showQR" :on-close="()=>{showQR=false}" :url-list="[qrUrl]"/>
   </el-menu>
@@ -126,10 +126,10 @@ export default {
       }
     },
     openHelp() {
-      window.open("https://docs.qq.com/doc/p/1e36932d41b40df896c1627a004068df9a28fc3f?dver=3.0.27474319"); 
+      window.open("https://docs.qq.com/doc/p/1e36932d41b40df896c1627a004068df9a28fc3f?dver=3.0.27474319");
     },
     changeProject(command){
-      if(command.id != this.currentProject.id){
+      if(command.id !== this.currentProject.id){
         let url = '/autotest/user/switch/project';
         let data = {
           id: this.user.id,

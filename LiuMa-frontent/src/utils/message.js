@@ -5,7 +5,7 @@ const resetMessage =(options) => {
   let doms = document.getElementsByClassName('el-message');
   let canShow = true;
   for( let i=0; i<doms.length; i++){
-    if(options.message == doms[i].getElementsByClassName('el-message__content')[0].innerHTML){
+    if(options.message === doms[i].getElementsByClassName('el-message__content')[0].innerHTML){
       canShow = false;
     }
   }

@@ -42,7 +42,7 @@ new Vue({
 
 // 路由拦截器
 router.beforeEach((to, from, next) => {
-    if (to.matched.length != 0) {
+    if (to.matched.length !== 0) {
         if (to.meta.requireAuth) { // 判断该路由是否需要登录权限
             if (store.state.token !== null) { // 通过state判断当前用户是否登录
                 if (to.meta.requirePerm) {
