@@ -78,7 +78,7 @@ public class ReportUpdateService {
             reportCollectionCase.setDuring((caseResult.getEndTime()-caseResult.getStartTime()) + "ms");
             reportCollectionCase.setStatus(getStatusByIndex(caseResult.getStatus()));
             reportCollectionCaseMapper.addReportCollectionCase(reportCollectionCase);
-            // 插入报告接口/web表
+            // 插入报告接口/web表/API
             if(caseResult.getCaseType().equals("API")){
                 List<ReportCollectionCaseApi> reportCollectionCaseApiList = new ArrayList<>();
                 for(int index=1; index <= caseResult.getTransactionList().size(); index++){
@@ -96,7 +96,7 @@ public class ReportUpdateService {
                     reportCollectionCaseApiList.add(reportCollectionCaseApi);
                 }
                 reportCollectionCaseApiMapper.batchAddReportCollectionCaseApi(reportCollectionCaseApiList);
-            }else {
+            }else { // UI
                 List<ReportCollectionCaseWeb> reportCollectionCaseWebList = new ArrayList<>();
                 for(int index=1; index <= caseResult.getTransactionList().size(); index++){
                     TransResultRequest transactionResult =caseResult.getTransactionList().get(index-1);

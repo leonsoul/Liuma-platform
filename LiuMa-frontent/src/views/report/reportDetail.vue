@@ -35,7 +35,7 @@
             <el-col :span="5">
                 <span>执行时长： {{report.during}}</span>
             </el-col>
-        </el-row>  
+        </el-row>
     </div>
     <!--结果列表-->
     <el-table size="small" :data="report.collectionList" stripe v-loading="loading">
@@ -58,7 +58,7 @@
                                 <el-table-column label="事务内容" prop="content" min-width="200px"/>
                                 <el-table-column label="执行日志" prop="execLog" width="120px">
                                     <template slot-scope="scope">
-                                        <el-button size="small" type="text" @click="viewLog(scope.row.execLog)">查看日志</el-button>
+                                        <el-button size="small" type="text" @click="viewLog(scope.row.execLog)">查看日志123</el-button>
                                     </template>
                                 </el-table-column>
                                 <el-table-column label="响应时长" prop="during" v-if="caseData.row.caseType ==='API'" width="120px"/>
@@ -99,7 +99,7 @@
         <el-table-column prop="failCount" label="失败数" width="120px"/>
         <el-table-column prop="errorCount" label="错误数" width="120px"/>
     </el-table>
-    <el-dialog title="查看日志" :visible.sync="logVisable" width="600px" destroy-on-close @close="closeLog">
+    <el-dialog title="查看日志345" :visible.sync="logVisable" width="600px" destroy-on-close @close="closeLog">
         <span v-html="log"/>
     </el-dialog>
   </div>

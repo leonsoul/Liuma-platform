@@ -20,7 +20,7 @@ public class ApiService {
 
     @Resource
     private ApiMapper apiMapper;
-
+//    保存或修改接口信息
     public void saveApi(ApiRequest apiRequest) {
         JSONObject apiObject = (JSONObject) JSON.toJSON(apiRequest);
         Api api = apiObject.toJavaObject(Api.class);

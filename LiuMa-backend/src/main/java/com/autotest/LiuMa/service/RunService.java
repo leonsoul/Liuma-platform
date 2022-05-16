@@ -43,12 +43,12 @@ public class RunService {
             debugDataMapper.addDebugData(debugData);
             runRequest.setSourceId(debugData.getId());
         }
-        // 新增任务
+        // 新增任务，将任务存入数据库中。设置任务id，名称，状态，类型，引擎，项目id，任务执行者，任务更新者，创建时间，更新时间，
         Task task = new Task();
         task.setId(UUID.randomUUID().toString());
         task.setName(runName);
-        task.setStatus(ReportStatus.PREPARED.toString());
-        task.setType(runRequest.getTaskType());
+        task.setStatus(ReportStatus.PREPARED.toString()); //将任务状态置为已就绪
+        task.setType(runRequest.getTaskType()); // 将任务类型置为run
         task.setEngineId(runRequest.getEngineId());
         task.setProjectId(runRequest.getProjectId());
         task.setCreateUser(runRequest.getRunUser());
@@ -56,7 +56,7 @@ public class RunService {
         task.setCreateTime(System.currentTimeMillis());
         task.setUpdateTime(System.currentTimeMillis());
         taskMapper.addTask(task);
-        // 预设报告
+        // 预设报告，将报告置入报告图中中。设置报告id，名称，任务的id，环境id，来源类型，来源id，报告的任务状态，项目id，任务执行者，任务更新者，创建时间，更新时间，
         Report report = new Report();
         report.setId(UUID.randomUUID().toString());
         report.setName(runName);
@@ -64,20 +64,22 @@ public class RunService {
         report.setEnvironmentId(runRequest.getEnvironmentId());
         report.setSourceType(runRequest.getSourceType());
         report.setSourceId(runRequest.getSourceId());
-        report.setStatus(ReportStatus.PREPARED.toString());
+        report.setStatus(ReportStatus.PREPARED.toString()); //将报告的任务状态置为已就绪
         report.setProjectId(runRequest.getProjectId());
         report.setCreateUser(runRequest.getRunUser());
         report.setUpdateUser(runRequest.getRunUser());
         report.setCreateTime(System.currentTimeMillis());
         report.setUpdateTime(System.currentTimeMillis());
         reportMapper.addReport(report);
-        // 统计报告用例数
+        // 统计报告用例数，
+        // 初始化 统计报告
         ReportStatistics reportStatistics = new ReportStatistics();
         reportStatistics.setId(UUID.randomUUID().toString());
         reportStatistics.setReportId(report.getId());
         reportStatistics.setPassCount(0);
         reportStatistics.setErrorCount(0);
         reportStatistics.setFailCount(0);
+        // 根据任务是计划还是集合，和任务id，收集用例总数
         Integer total = 0;
         if(runRequest.getSourceType().equals(ReportSourceType.PLAN.toString())){
             total = planCollectionMapper.getPlanCaseCount(runRequest.getSourceId());

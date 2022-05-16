@@ -144,6 +144,7 @@ public class OpenApiService {
     }
 
     public void uploadCaseResult(EngineRequest request){
+        // 拿到接口请求之后，从数据库中将task拿出来进行更新
         TaskDTO task = taskMapper.getTaskDetail(request.getTaskId());
         List<CaseResultRequest> caseResultList = request.getCaseResultList();
         reportUpdateService.updateReport(task, caseResultList);
