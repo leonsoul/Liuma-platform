@@ -116,7 +116,7 @@ export default {
       getOptPerm() {
         let url = "/autotest/setting/permission?userId="+ this.$store.state.userInfo.id + "&projectId=" + this.$store.state.projectId;
         this.$get(url, response => {
-          this.showOpt = response.data;  
+          this.showOpt = response.data;
         });
       },
       getData(searchParam){
@@ -167,7 +167,8 @@ export default {
         this.settingForm = {
           id: row.id,
           name: row.name,
-          description: row.description
+          description: row.description,
+          createTime: row.createTime
         };
         this.settingVisible = true;
       },
@@ -217,7 +218,7 @@ export default {
         });
       }
     }
-    
+
 }
 </script>
 

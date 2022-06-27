@@ -40,7 +40,7 @@
         </div>
     </el-dialog>
     <!-- 接口编辑界面 -->
-    <el-drawer title="接口详情" :visible.sync="editCaseApiVisible" direction="rtl" :with-header="false" size="900px">
+    <el-drawer title="接口详情" :visible.sync="editCaseApiVisible" direction="rtl" :with-header="false" destroy-on-close size="900px">
         <div class="api-drawer-header">
             <span style="float: left; font-size: 16px;">接口详情编辑</span>
             <el-button size="small" type="primary" style="float: right;" @click="editCaseApiVisible=false">确定</el-button>
@@ -60,10 +60,10 @@
                     <request-rest :reqRest="caseApiForm.rest" style="width: 100%"/>
                 </el-tab-pane>
                 <el-tab-pane label="响应断言" name="assertion">
-                    <assertion :assertion="caseApiForm.assertion" style="width: 100%"/>
+                    <assertion :assertion="caseApiForm.assertion" :apiId="caseApiForm.apiId" style="width: 100%"/>
                 </el-tab-pane>
                 <el-tab-pane label="关联取值" name="relation">
-                    <relation :relation="caseApiForm.relation" style="width: 100%"/>
+                    <relation :relation="caseApiForm.relation" :apiId="caseApiForm.apiId" style="width: 100%"/>
                 </el-tab-pane>
                 <el-tab-pane label="逻辑控件" name="controller">
                     <controller :controller="caseApiForm.controller" style="width: 100%"/>
