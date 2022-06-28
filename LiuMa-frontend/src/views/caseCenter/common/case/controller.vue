@@ -138,6 +138,7 @@ export default {
                 {label: "错误屏蔽", name: "errorContinue"},
                 {label: "条件控制器", name: "whetherExec"},
                 {label: "循环控制器", name: "loopExec"},
+                {label: "接口加密", name: "encryption"},
             ],
             functionList: [],
             optList: [
