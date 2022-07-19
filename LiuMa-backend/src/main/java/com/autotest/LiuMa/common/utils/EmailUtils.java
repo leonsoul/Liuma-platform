@@ -1,4 +1,10 @@
 package com.autotest.LiuMa.common.utils;
+
+import com.aliyuncs.DefaultAcsClient;
+import com.aliyuncs.IAcsClient;
+import com.aliyuncs.dm.model.v20151123.SingleSendMailRequest;
+import com.aliyuncs.profile.DefaultProfile;
+import com.aliyuncs.profile.IClientProfile;
 import com.sun.mail.util.MailSSLSocketFactory;
 
 import javax.mail.*;
@@ -15,11 +21,16 @@ public class EmailUtils {
     /**
      * Receiver 收件人地址，title邮件主题，content邮件正文
      */
-
     private static final String SENDER = "leon.jack@qq.com";
     private static final String AUTH_CODE = "hgqaskhkxihsbhae";
-    public static void sendMail(String receiver, String title, String content){
-        //1、创建连接对象，连接到邮箱服务器
+    /**
+     *   1、创建连接对象，连接到邮箱服务器
+     */
+    public static void sendMail(String receiver, String title, String content, String accessKey, String accessSecret,
+                                String runnerSenderAddress, String runnerSenderName) {
+        IClientProfile profile = DefaultProfile.getProfile("cn-hangzhou", accessKey, accessSecret);
+        IAcsClient client = new DefaultAcsClient(profile);
+        SingleSendMailRequest request = new SingleSendMailRequest();
         try {
             Properties prop = new Properties();
             // 开启debug调试，以便在控制台查看
