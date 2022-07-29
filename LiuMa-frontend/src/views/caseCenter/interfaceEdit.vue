@@ -118,7 +118,7 @@ export default {
             },
             levels: ["P0", "P1", "P2", "P3"],
             methods: ['POST', 'GET', 'PUT', 'DELETE', 'HEAD', 'PATCH', 'OPTIONS'],
-            protocols: ["HTTP"],
+            protocols: ["HTTP","HTTPS"],
             domains: [],
             modules: [],
             rules: {

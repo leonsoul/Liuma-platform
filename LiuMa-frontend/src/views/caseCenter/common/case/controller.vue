@@ -139,7 +139,7 @@ export default {
                 {label: "条件控制器", name: "whetherExec"},
                 {label: "循环控制器", name: "loopExec"},
                 {label: "接口加密", name: "encryption"},
-            ],
+                {label: "token", name: "token"},],
             functionList: [],
             optList: [
                 {label: "是", value: true},
