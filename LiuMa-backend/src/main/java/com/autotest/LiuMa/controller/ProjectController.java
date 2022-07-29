@@ -5,10 +5,8 @@ import com.autotest.LiuMa.common.utils.Pager;
 import com.autotest.LiuMa.database.domain.Project;
 import com.autotest.LiuMa.database.domain.Role;
 import com.autotest.LiuMa.database.domain.User;
-import com.autotest.LiuMa.dto.PlanDTO;
+import com.autotest.LiuMa.database.domain.UserProject;
 import com.autotest.LiuMa.dto.ProjectDTO;
-import com.autotest.LiuMa.dto.RoleDTO;
-import com.autotest.LiuMa.dto.UserDTO;
 import com.autotest.LiuMa.request.ProjectUserRequest;
 import com.autotest.LiuMa.request.QueryRequest;
 import com.autotest.LiuMa.service.ProjectService;
@@ -46,6 +44,11 @@ public class ProjectController {
     @PostMapping("/user/save")
     public void saveProjectUser(@RequestBody ProjectUserRequest request){
         projectService.saveProjectUser(request);
+    }
+
+    @PostMapping("/user/delete")
+    public void deleteProjectUser(@RequestBody UserProject request){
+        projectService.deleteProjectUser(request.getProjectId(), request.getUserId());
     }
 
     @PostMapping("/delete")
