@@ -83,6 +83,7 @@ public class OpenApiService {
     public String applyEngineToken(EngineRequest request) {
         Engine engine = engineMapper.getEngineById(request.getEngineCode());
         if (request.getEngineSecret().equals(engine.getSecret())){
+            // 校验问题  字符类型？
             return JwtUtils.createEngineToken(engine);
         }
         throw new EngineVerifyException("id或secret填写不正确");
