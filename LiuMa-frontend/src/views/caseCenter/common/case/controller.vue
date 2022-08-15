@@ -20,8 +20,17 @@
                     <el-button v-else-if="controller[scope.$index].name === 'preScript' || controller[scope.$index].name === 'postScript'"
                         size="mini" type="text" @click="editCode(scope.$index)">编辑脚本</el-button>
                     <div v-else-if="controller[scope.$index].name === 'timeout' || controller[scope.$index].name === 'sleepBeforeRun' || controller[scope.$index].name === 'sleepAfterRun'" >
-                        <el-input-number size="small" v-model="controller[scope.$index].value" step-strictly :step="1" :min="1"/> S
+                        <el-input-number size="small" v-model="controller[scope.$index].value" step-strictly :step="1" :min="1" /> S
                     </div>
+<!--                    <div v-else-if="controller[scope.$index].name === 'token'" >-->
+<!--                      <el-input v-model="controller[scope.$index].value" ></el-input>-->
+<!--                    </div>-->
+<!--                    <div v-else-if="controller[scope.$index].name === 'token2'">-->
+<!--                      <el-input  v-model="controller[scope.$index].value" ></el-input>-->
+<!--                    </div>>-->
+                    <el-select v-else-if="controller[scope.$index].name === 'token'" style="width: 95%" v-model="controller[scope.$index].value">
+                        <el-option v-for="item in tokenOptList" :key="item.value" :label="item.label" :value="item.value"/>
+                    </el-select>
                     <el-select v-else size="small" style="width: 95%" v-model="controller[scope.$index].value">
                         <el-option v-for="item in optList" :key="item.value" :label="item.label" :value="item.value"/>
                     </el-select>
@@ -122,7 +131,7 @@
                             <el-input-number size="small" style="width: 150px" v-model="loop.timeout" label="超时时间" step-strictly :step="10" :min="0"/>  ms
                         </el-form-item>
                     </el-col>
-                </el-row> 
+                </el-row>
             </el-form>
         </div>
         <!-- 条件控制器条件编辑 -->
@@ -191,11 +200,17 @@ export default {
                 {label: "条件控制器", name: "whetherExec"},
                 {label: "循环控制器", name: "loopExec"},
                 {label: "接口加密", name: "encryption"},
-                {label: "token", name: "token"},],
+                {label: "token", name: "token"},
+                // {label: "token2", name: "token2"},
+            ],
             functionList: [],
             optList: [
                 {label: "是", value: true},
                 {label: "否", value: false},
+            ],
+            tokenOptList:[
+              {label: "{{token}}", value: "{{token}}"},
+              {label: "否", value: "false"},
             ],
             showType: null,
             code: "",
@@ -253,6 +268,8 @@ export default {
                 this.controller[index].value = "{}";
             }else if(val === "timeout"){
                 this.controller[index].value = 60;
+            }else if(val === 'token'){
+                this.controller[index].value = "{{token}}";
             }else{
                 this.controller[index].value = true;
             }
