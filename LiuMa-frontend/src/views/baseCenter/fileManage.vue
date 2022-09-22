@@ -38,7 +38,7 @@
                 <el-input size="small" style="width: 90%" v-model="uploadFileForm.name" placeholder="请输入文件名称"/>
             </el-form-item>
             <el-form-item label="文件描述" prop="description">
-                <el-input size="small" style="width: 90%" v-model="uploadFileForm.description" :autosize="{ minRows: 3}" 
+                <el-input size="small" style="width: 90%" v-model="uploadFileForm.description" :autosize="{ minRows: 3}"
                 maxlength="200" show-word-limit type="textarea" clearable placeholder="请输入文件描述"/>
             </el-form-item>
             <el-form-item label="选择文件" prop="fileList">
@@ -46,7 +46,7 @@
                         :on-remove="removeFile" :on-exceed="handleExceed" drag action :limit="1" ref="upload">
                     <i class="el-icon-upload"></i>
                     <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
-                    <div class="el-upload__tip" slot="tip">只能上传单个文件，且不超过5M</div>
+                    <div class="el-upload__tip" slot="tip">只能上传单个文件，且不超过50M</div>
                 </el-upload>
             </el-form-item>
         </el-form>
@@ -179,8 +179,8 @@ export default {
         },
         // 上传前判断格式和大小
         beforeUpload(file) {
-            if (file.size > 5 * 1024 * 1024) {
-                this.$message.warning('文件大小超过5M 无法上传');
+            if (file.size > 50 * 1024 * 1024) {
+                this.$message.warning('文件大小超过50M 无法上传');
                 return false;
             }
             return true;
