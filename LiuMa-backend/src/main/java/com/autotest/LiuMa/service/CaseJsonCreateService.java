@@ -321,14 +321,11 @@ public class CaseJsonCreateService {
                 }
             }else {  // 根据path来获取域名
                 if(dataObj.containsKey("path")){
-                    String path = dataObj.getString("path");
+                    String path = dataObj.getJSONObject("path").getString("value");
                     List<Domain> domainList = domainMapper.getPathDomainList(environmentId);
                     for(Domain domain: domainList){
                         String domainKey = domain.getDomainKey();
-                        if(path.length() < domainKey.length()){
-                            continue;
-                        }
-                        if(path.substring(0, domainKey.length()).equals(domainKey)){
+                        if(path.startsWith(domainKey)){
                             dataObj.getJSONObject("domain").put("value", domain.getDomainData());
                             break;
                         }
@@ -426,8 +423,12 @@ public class CaseJsonCreateService {
             functionObj.put("code", function.getCode());
             JSONArray params = JSONArray.parseArray(function.getParam());
             JSONObject paramObj = new JSONObject();
+            paramObj.put("names", new JSONArray());
+            paramObj.put("types", new JSONArray());
             for(int j=0; j<params.size(); j++){
-                paramObj.put(params.getJSONObject(j).getString("paramName"), params.getJSONObject(j).getString("type"));
+                JSONObject param = params.getJSONObject(j);
+                paramObj.getJSONArray("names").add(param.getString("paramName"));
+                paramObj.getJSONArray("types").add(param.getString("type"));
             }
             functionObj.put("params", paramObj);
             functionList.add(functionObj);
@@ -461,10 +462,7 @@ public class CaseJsonCreateService {
             List<Domain> domainList = domainMapper.getPathDomainList(environmentId);
             for(Domain domain: domainList){
                 String domainKey = domain.getDomainKey();
-                if(path.length() < domainKey.length()){
-                    continue;
-                }
-                if(path.substring(0, domainKey.length()).equals(domainKey)){
+                if(path.startsWith(domainKey)){
                     url = domain.getDomainData();
                     break;
                 }

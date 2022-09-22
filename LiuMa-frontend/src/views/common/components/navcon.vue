@@ -31,6 +31,10 @@
 <!--    <el-button size="small" class="align-right" type="text" style="margin-right: 15px" @click="openHelp">-->
 <!--      <i class="el-icon-question" style="color: #606266"> 使用手册</i>-->
 <!--    </el-button>-->
+    <!-- 配置中心 -->
+    <el-button size="small" class="align-right" type="text" style="margin-right: 15px" @click="openSetting">
+      <i class="el-icon-s-tools" style="color: #606266"> 配置中心</i>
+    </el-button>
     <!-- 项目选择栏 -->
     <el-dropdown size="small" @command="changeProject" placement="bottom" class="align-right">
       <span class="dropdown-proj">
@@ -107,7 +111,7 @@ export default {
     handleCommand(command) {
       switch (command) {
         case "personal":
-          this.$router.push({path: '/setting/userSetting'})
+          this.$router.push({path: '/setting/userSetting'});
           break;
         case "system":
           this.$router.push({path: '/setting/systemSetting'})
@@ -125,11 +129,11 @@ export default {
           break;
       }
     },
-    openHelp() {
-      window.open("https://docs.qq.com/doc/p/1e36932d41b40df896c1627a004068df9a28fc3f?dver=3.0.27474319");
+    openSetting() {
+      this.$router.push({path: '/setting/systemSetting'});
     },
     changeProject(command){
-      if(command.id !== this.currentProject.id){
+      if(command.id != this.currentProject.id){
         let url = '/autotest/user/switch/project';
         let data = {
           id: this.user.id,
