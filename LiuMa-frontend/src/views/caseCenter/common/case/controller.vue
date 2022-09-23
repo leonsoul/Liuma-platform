@@ -22,14 +22,11 @@
                     <div v-else-if="controller[scope.$index].name === 'timeout' || controller[scope.$index].name === 'sleepBeforeRun' || controller[scope.$index].name === 'sleepAfterRun'" >
                         <el-input-number size="small" v-model="controller[scope.$index].value" step-strictly :step="1" :min="1" /> S
                     </div>
-<!--                    <div v-else-if="controller[scope.$index].name === 'token'" >-->
-<!--                      <el-input v-model="controller[scope.$index].value" ></el-input>-->
-<!--                    </div>-->
-<!--                    <div v-else-if="controller[scope.$index].name === 'token2'">-->
-<!--                      <el-input  v-model="controller[scope.$index].value" ></el-input>-->
-<!--                    </div>>-->
                     <el-select v-else-if="controller[scope.$index].name === 'token'" style="width: 95%" v-model="controller[scope.$index].value">
                         <el-option v-for="item in tokenOptList" :key="item.value" :label="item.label" :value="item.value"/>
+                    </el-select>
+                    <el-select v-else-if="controller[scope.$index].name === 'encryption'" style="width: 95%" v-model="controller[scope.$index].value">
+                        <el-option v-for="item in signOptList" :key="item.value" :label="item.label" :value="item.value"/>
                     </el-select>
                     <el-select v-else size="small" style="width: 95%" v-model="controller[scope.$index].value">
                         <el-option v-for="item in optList" :key="item.value" :label="item.label" :value="item.value"/>
@@ -212,6 +209,12 @@ export default {
               {label: "{{token}}", value: "{{token}}"},
               {label: "否", value: "false"},
             ],
+            signOptList:[
+              {label: "设置接口", value: "setting"},
+              {label: "直播相册", value: "live"},
+              {label: "CRM", value: "crm"},
+              {label: "不加密", value: false},
+            ],
             showType: null,
             code: "",
             conditions: Array,
@@ -270,6 +273,8 @@ export default {
                 this.controller[index].value = 60;
             }else if(val === 'token'){
                 this.controller[index].value = "{{token}}";
+            }else if(val === 'encryption'){
+                this.controller[index].value = "setting";
             }else{
                 this.controller[index].value = true;
             }
