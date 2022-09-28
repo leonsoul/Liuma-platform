@@ -5,7 +5,7 @@
   <div>
     <page-header title="用例编辑" :showDebug="true" :cancel="cancelAdd" :debug="debugCase" :save="saveAdd"/>
     <el-form ref="caseForm" :rules="rules" :model="caseForm" label-width="90px">
-        <base-info :caseForm="caseForm"/>
+        <base-info :caseForm="caseForm" v-on:getUseFunction="getUseFunction"/>
     <p class="tip">接口请求</p>
     <el-form-item style="margin-left:-80px;" prop="caseApis"/>
     <el-table :data="caseForm.caseApis" row-key="id" class="sort-table" size="small">
@@ -40,7 +40,7 @@
         </div>
     </el-dialog>
     <!-- 接口编辑界面 -->
-    <el-drawer title="接口详情" :visible.sync="editCaseApiVisible" direction="rtl" :with-header="false" destroy-on-close size="900px">
+    <el-drawer title="接口详情" :visible.sync="editCaseApiVisible"  direction="rtl" :with-header="false" destroy-on-close size="900px">
         <div class="api-drawer-header">
             <span style="float: left; font-size: 16px;">接口详情编辑</span>
             <el-button size="small" type="primary" style="float: right;" @click="editCaseApiVisible=false">确定</el-button>
@@ -51,10 +51,10 @@
                     <request-header :reqHeader="caseApiForm.header" style="width: 100%"/>
                 </el-tab-pane>
                 <el-tab-pane label="请求体" name="body">
-                    <request-body :reqBody="caseApiForm.body" style="width: 100%"/>
+                    <request-body :caseForm="caseForm" :reqBody="caseApiForm.body"   style="width: 100%"/>
                 </el-tab-pane>
                 <el-tab-pane label="QUERY参数" name="query">
-                    <request-query :reqQuery="caseApiForm.query" style="width: 100%"/>
+                    <request-query :reqQuery="caseApiForm.query" :reqBody="caseApiForm.body" style="width: 100%"/>
                 </el-tab-pane>
                 <el-tab-pane label="REST参数" name="rest">
                     <request-rest :reqRest="caseApiForm.rest" style="width: 100%"/>
@@ -95,7 +95,7 @@ import RunForm from '@/views/common/business/runForm'
 import RunResult from './common/case/runResult'
 
 export default {
-    components:{PageHeader, BaseInfo, SelectApi, RequestHeader, RequestQuery, 
+    components:{PageHeader, BaseInfo, SelectApi, RequestHeader, RequestQuery,
     RequestRest,RequestBody, Assertion, Relation, Controller, RunForm, RunResult},
     data() {
         return{
@@ -142,7 +142,8 @@ export default {
                 type: [{ required: true, message: '用例类型不能为空', trigger: 'blur' }],
                 moduleId: [{ required: true, message: '用例模块不能为空', trigger: 'blur' }],
                 caseApis: [{ required: true, message: '请至少添加一条接口请求', trigger: 'blur' }]
-            }
+            },
+            FunctionList: []
         }
     },
     created() {
@@ -265,7 +266,7 @@ export default {
                     if(param.type === "copy"){ //复用
                         data.id = "";
                     }
-                    this.caseForm = data;    
+                    this.caseForm = data;
                 });
             }
         },
@@ -316,6 +317,10 @@ export default {
         },
         closeResult(){
             this.resultVisable = false;
+        },
+        getUseFunction(data){
+          console.log(data)
+          this.FunctionList = data
         }
     }
 }
@@ -323,9 +328,9 @@ export default {
 
 <style scoped>
 .api-drawer-header{
-    border-bottom: 1px solid rgb(219, 219, 219); 
-    height: 60px; 
-    display: flex; 
+    border-bottom: 1px solid rgb(219, 219, 219);
+    height: 60px;
+    display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 0px 20px;
