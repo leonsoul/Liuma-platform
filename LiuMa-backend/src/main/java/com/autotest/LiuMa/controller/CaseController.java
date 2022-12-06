@@ -31,6 +31,7 @@ public class CaseController {
 
     @PostMapping("/save")
     public void saveCase(@RequestBody CaseRequest caseRequest, HttpServletRequest request) {
+        // 保存用例管理的用例
         String user = request.getSession().getAttribute("userId").toString();
         caseRequest.setUpdateUser(user);
         caseService.saveCase(caseRequest);

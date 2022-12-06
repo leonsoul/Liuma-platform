@@ -44,8 +44,8 @@ public class CaseService {
     private ElementMapper elementMapper;
 
     public void saveCase(CaseRequest caseRequest) {
-        JSONObject caseObject = (JSONObject) JSON.toJSON(caseRequest);
-        Case testCase = caseObject.toJavaObject(Case.class);
+        JSONObject caseObject = (JSONObject) JSON.toJSON(caseRequest); // 将字符串转为json格式
+        Case testCase = caseObject.toJavaObject(Case.class); // 将json转为java对象实例
         if(testCase.getId().equals("") || testCase.getId() == null){ // 新增用例
             testCase.setId(UUID.randomUUID().toString());
             testCase.setCreateTime(System.currentTimeMillis());
@@ -64,8 +64,8 @@ public class CaseService {
             for(CaseApiRequest caseApiRequest: caseApiArray){
                 JSONObject caseApiObject = (JSONObject) JSON.toJSON(caseApiRequest);
                 CaseApi caseApi = caseApiObject.toJavaObject(CaseApi.class);
-                caseApi.setCaseId(testCase.getId());
-                caseApi.setId(UUID.randomUUID().toString());
+                caseApi.setCaseId(testCase.getId()); // 将api和caseID关联
+                caseApi.setId(UUID.randomUUID().toString()); // 生成新的uuid
                 caseApis.add(caseApi);
             }
             caseApiMapper.addCaseApi(caseApis);

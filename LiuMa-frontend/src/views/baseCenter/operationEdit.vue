@@ -58,7 +58,7 @@
             </el-table-column>
             <el-table-column label="数据类型" prop="type">
                 <template slot-scope="scope">
-                    <el-select size="small" style="width: 90%" v-model="operationForm.data[scope.$index].type" 
+                    <el-select size="small" style="width: 90%" v-model="operationForm.data[scope.$index].type"
                     :disabled="operationForm.data[scope.$index].paramName==='assertion' || operationForm.data[scope.$index].paramName ==='continue' || operationForm.data[scope.$index].paramName==='save_name' || operationForm.data[scope.$index].paramName==='true' || operationForm.data[scope.$index].paramName==='false'">
                         <el-option v-for="item in dataTypes" :key="item" :label="item" :value="item"/>
                     </el-select>
@@ -71,7 +71,7 @@
             </el-table-column>
             <el-table-column label="操作" width="100px">
                 <template slot-scope="scope">
-                    <el-button size="mini" v-if="operationForm.data[scope.$index].paramName!=='assertion' && operationForm.data[scope.$index].paramName!=='expect' && operationForm.data[scope.$index].paramName!=='continue' && operationForm.data[scope.$index].paramName!=='save_name' && operationForm.data[scope.$index].paramName!=='true' && operationForm.data[scope.$index].paramName!=='false'" 
+                    <el-button size="mini" v-if="operationForm.data[scope.$index].paramName!=='assertion' && operationForm.data[scope.$index].paramName!=='expect' && operationForm.data[scope.$index].paramName!=='continue' && operationForm.data[scope.$index].paramName!=='save_name' && operationForm.data[scope.$index].paramName!=='true' && operationForm.data[scope.$index].paramName!=='false'"
                         type="text" @click="removeData(scope.$index)">删除</el-button>
                 </template>
             </el-table-column>
@@ -132,7 +132,7 @@ export default {
     },
     methods: {
       getDetail(param){
-        if (param.operationId){ 
+        if (param.operationId){
             this.isAdd = false;
             let url = '/autotest/operation/detail/' + param.operationId;
             this.$get(url, response =>{
@@ -201,7 +201,7 @@ export default {
           this.operationForm.element.splice(0, this.operationForm.element.length);
       },
     }
-    
+
 }
 </script>
 

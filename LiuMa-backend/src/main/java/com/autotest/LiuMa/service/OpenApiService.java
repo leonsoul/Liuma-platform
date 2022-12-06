@@ -83,6 +83,7 @@ public class OpenApiService {
     public String applyEngineToken(EngineRequest request) {
         Engine engine = engineMapper.getEngineById(request.getEngineCode());
         if (request.getEngineSecret().equals(engine.getSecret())){
+            // 校验问题  字符类型？
             return JwtUtils.createEngineToken(engine);
         }
         throw new EngineVerifyException("id或secret填写不正确");
@@ -171,6 +172,7 @@ public class OpenApiService {
     }
 
     public void uploadCaseResult(EngineRequest request){
+        // 拿到接口请求之后，从数据库中将task拿出来进行更新
         TaskDTO task = taskMapper.getTaskDetail(request.getTaskId());
         List<CaseResultRequest> caseResultList = request.getCaseResultList();
         reportUpdateService.updateReport(task, caseResultList);

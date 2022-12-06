@@ -1,6 +1,6 @@
 /**
 * 响应断言
-*/ 
+*/
 <template>
     <div>
         <el-table :data="assertion"  size="small">
@@ -102,10 +102,10 @@ export default {
         addContent(item){
             const type = item.type;
             let assertion = {
-                from: "resBody", 
-                method: "jsonpath", 
-                expression: item.path, 
-                assertion: "", 
+                from: "resBody",
+                method: "jsonpath",
+                expression: item.path,
+                assertion: "",
                 expect: item.childValue
             }
             switch(type) {

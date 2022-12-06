@@ -33,7 +33,7 @@
                 <el-table-column label="事务内容" prop="content" min-width="200px"/>
                 <el-table-column label="执行日志" prop="execLog" width="100px">
                     <template slot-scope="scope">
-                        <el-button size="small" type="text" @click="viewLog(scope.row.execLog)">查看日志</el-button>
+                        <el-button size="small" type="text" @click="viewLog(scope.row.execLog)">查看日志56</el-button>
                     </template>
                 </el-table-column>
                 <el-table-column label="响应时长" prop="during" v-if="caseType ==='API'" width="100px"/>
@@ -45,7 +45,7 @@
                 </el-table-column>
             </el-table>
         </el-dialog>
-        <el-dialog title="查看日志" :visible.sync="logVisable" width="600px" destroy-on-close @close="closeLog">
+        <el-dialog title="查看日志78" :visible.sync="logVisable" width="600px" destroy-on-close @close="closeLog">
             <span v-html="log"/>
         </el-dialog>
     </div>

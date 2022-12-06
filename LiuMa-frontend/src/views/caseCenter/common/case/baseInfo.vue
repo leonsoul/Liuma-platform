@@ -1,6 +1,6 @@
 /**
 * 用例基础信息
-*/ 
+*/
 <template>
     <div>
         <p class="tip">基础信息</p>
@@ -40,7 +40,7 @@
             </el-col>
             <el-col :span="10">
                 <el-form-item label="模块分类" prop="moduleId">
-                    <select-tree placeholder="请选择模块分类" :selectedValue="caseForm.moduleId" 
+                    <select-tree placeholder="请选择模块分类" :selectedValue="caseForm.moduleId"
                         :selectedLabel="caseForm.moduleName" :treeData="modules" @selectModule="selectModule($event)"/>
                 </el-form-item>
             </el-col>
@@ -61,7 +61,7 @@
         <el-row :gutter="40">
             <el-col :span="12">
                 <el-form-item label="导入函数">
-                    <el-select size="small" style="width: 100%" v-model="caseForm.commonParam.functions" filterable multiple clearable placeholder="请选择本用例需要使用的自定义函数">
+                    <el-select size="small" style="width: 100%" v-model="caseForm.commonParam.functions" filterable multiple clearable placeholder="请选择本用例需要使用的自定义函数" @change="send_function">
                         <el-option v-for="item in functionList" :key="item.id" :label="item.name" :value="item.id"/>
                     </el-select>
                 </el-form-item>
@@ -102,7 +102,7 @@
                 </el-form-item>
             </el-col>
         </el-row>
-        
+
     </div>
 </template>
 <script>
@@ -136,7 +136,9 @@ export default {
         if(this.caseForm.type === "API"){
             this.getHeader();
             this.getProxy();
-
+        }
+        if(this.functionList !== []){
+           this.send_function()
         }
     },
     methods: {
@@ -180,6 +182,10 @@ export default {
             this.caseForm.moduleId = data.id;
             this.caseForm.moduleName = data.label;
         },
+        send_function(){
+
+          this.$emit('getUseFunction', this.caseForm.commonParam.functions)
+        }
     }
 }
 </script>

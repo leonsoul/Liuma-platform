@@ -10,8 +10,9 @@ import java.util.List;
 
 @Mapper
 public interface ReportMapper {
+    // 将报告存入数据库中
     void addReport(Report report);
-
+    // 将报告统计存放到数据库中
     void addReportStatistics(ReportStatistics reportStatistics);
 
     ReportStatistics getReportStatistics(String reportId);

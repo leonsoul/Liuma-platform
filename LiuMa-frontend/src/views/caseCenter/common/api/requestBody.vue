@@ -33,7 +33,7 @@
         </el-row>
         <!-- form格式数据 -->
         <div v-if="reqBody.type==='form-data' || reqBody.type==='form-urlencoded'">
-            <request-form :reqForm="reqBody.form" style="width: 100%"/>
+            <request-form :reqForm="reqBody.form" :caseForm="caseForm" style="width: 100%"/>
         </div>
         <!-- json格式数据 -->
         <div v-if="reqBody.type==='json'" class="req-json-editor">
@@ -61,6 +61,7 @@ export default {
     name: 'RequestHeader',
     props:{
         reqBody:Object,
+        caseForm: Object
     },
     data() {
         return{
