@@ -15,7 +15,6 @@ public class EmailUtils {
     /**
      * Receiver 收件人地址，title邮件主题，content邮件正文
      */
-
     private static final String SENDER = "leon.jack@qq.com";
     private static final String AUTH_CODE = "hgqaskhkxihsbhae";
     public static void sendMail(String receiver, String title, String content){
