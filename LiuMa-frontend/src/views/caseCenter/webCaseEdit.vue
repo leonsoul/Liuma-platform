@@ -28,6 +28,11 @@
               <span v-html="scope.row.dataText"/>
           </template>
         </el-table-column>
+        <el-table-column label="步骤描述" min-width="200px">
+            <template slot-scope="scope">
+                <el-input size="mini" style="width: 90%" v-model="scope.row.description" placeholder="请输入步骤描述"/>
+            </template>
+        </el-table-column>
         <el-table-column label="操作" width="150px">
             <template slot-scope="scope">
                 <el-button size="mini" type="text" @click="editCaseWeb(scope.$index, scope.row)">编辑</el-button>
@@ -106,9 +111,9 @@
         </div>
     </el-dialog>
     <!-- 用例调试选择引擎和环境 -->
-    <run-form :runForm="runForm" :runVisible="runVisible" @closeRun="closeRun" @run="run($event)"/>
+    <run-form :runForm="runForm" :runVisible="runVisible" :showEnvironment="true" @closeRun="closeRun" @run="run($event)"/>
     <!-- 用例执行结果展示 -->
-    <run-result :taskId="taskId" :caseType="caseType" :resultVisable="resultVisable" @closeResult="closeResult"/>
+    <run-result :taskId="taskId" :caseType="caseForm.type" :resultVisable="resultVisable" @closeResult="closeResult"/>
   </div>
 </template>
 
@@ -171,7 +176,6 @@ export default {
                 engineId: "",
                 environmentId: []
             },
-            caseType: "WEB",
             resultVisable: false,
             taskId: "",
             rules: {
@@ -448,7 +452,7 @@ export default {
             });
         },
         getOperations(){
-          let url = '/autotest/operation/group/list/' + this.$store.state.projectId;
+          let url = '/autotest/operation/group/web/list/' + this.$store.state.projectId + "?system=";
             this.$get(url, response =>{
                 this.operations = response.data;
             });

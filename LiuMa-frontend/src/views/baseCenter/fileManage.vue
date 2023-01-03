@@ -141,7 +141,8 @@ export default {
         },
         submitFileForm(confirm, form){
             this.$refs[confirm].validate(valid => {
-                if (valid) {
+              console.log("file valid: "+ valid);
+              if (valid) {
                     let url = '/autotest/file/upload';
                     let data = {
                         name: form.name,

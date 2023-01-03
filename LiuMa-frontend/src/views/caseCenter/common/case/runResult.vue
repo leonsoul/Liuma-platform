@@ -3,7 +3,7 @@
 */
 <template>
     <div>
-        <el-dialog title="执行结果" :visible.sync="resultVisable" width="800px" destroy-on-close :close-on-click-modal="false" @close="cancel">
+        <el-dialog title="执行结果" :visible.sync="resultVisable" width="900px" destroy-on-close :close-on-click-modal="false" @close="cancel">
             <el-row :gutter="40" style="margin-top:-20px">
                 <el-form>
                 <el-col :span="12">
@@ -29,15 +29,16 @@
                         <span v-if="scope.row.status==='skip'" class="lm-info"><i class="el-icon-remove"/> 跳过</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="事务名称" prop="transName" min-width="150px"/>
-                <el-table-column label="事务内容" prop="content" min-width="200px"/>
+                <el-table-column label="事务名称" prop="transName" min-width="120px"/>
+                <el-table-column label="事务内容" prop="content" min-width="150px"/>
+                <el-table-column label="事务描述" prop="description" min-width="180px"/>
                 <el-table-column label="执行日志" prop="execLog" width="100px">
                     <template slot-scope="scope">
                         <el-button size="small" type="text" @click="viewLog(scope.row.execLog)">查看日志56</el-button>
                     </template>
                 </el-table-column>
                 <el-table-column label="响应时长" prop="during" v-if="caseType ==='API'" width="100px"/>
-                <el-table-column label="执行截图" prop="screenshotList" v-if="caseType ==='WEB'" width="100px">
+                <el-table-column label="执行截图" prop="screenshotList" v-else width="100px">
                     <template slot-scope="scope">
                         <el-button v-if="scope.row.screenshotList.length !== 0" size="small" type="text" @click="viewImage(scope.row)">查看</el-button>
                         <el-image-viewer :z-index="imageZindex" v-if="scope.row.showViewer" :on-close="()=>{scope.row.showViewer=false}" :url-list="scope.row.screenshotList"/>
@@ -107,7 +108,7 @@ export default {
             this.$get(url, response => {
                 this.result = response.data;
                 if(this.result){
-                    if(this.caseType === 'WEB'){
+                    if(this.caseType !== 'API'){
                         for(let i=0;i<this.result.transList.length;i++){
                             let trans = this.result.transList[i];
                             trans.screenshotList = JSON.parse(trans.screenshotList);

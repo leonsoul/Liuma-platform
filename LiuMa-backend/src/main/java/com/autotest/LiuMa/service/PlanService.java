@@ -1,12 +1,12 @@
 package com.autotest.LiuMa.service;
 
 import com.autotest.LiuMa.common.constants.PlanFrequency;
+import com.autotest.LiuMa.common.exception.LMException;
 import com.autotest.LiuMa.database.domain.Plan;
 import com.autotest.LiuMa.database.domain.PlanCollection;
+import com.autotest.LiuMa.database.domain.PlanNotice;
 import com.autotest.LiuMa.database.domain.PlanSchedule;
-import com.autotest.LiuMa.database.mapper.PlanCollectionMapper;
-import com.autotest.LiuMa.database.mapper.PlanMapper;
-import com.autotest.LiuMa.database.mapper.PlanScheduleMapper;
+import com.autotest.LiuMa.database.mapper.*;
 import com.autotest.LiuMa.dto.PlanCollectionDTO;
 import com.autotest.LiuMa.dto.PlanDTO;
 import com.autotest.LiuMa.request.QueryRequest;
@@ -33,7 +33,21 @@ public class PlanService {
     @Resource
     private PlanScheduleMapper planScheduleMapper;
 
+    @Resource
+    private CollectionCaseMapper collectionCaseMapper;
+
+    @Resource
+    private PlanNoticeMapper planNoticeMapper;
+
     public void savePlan(PlanDTO planDTO) {
+        if(planDTO.getEnvironmentId() == null || planDTO.getEnvironmentId().equals("")){ // 如果环境未选 则判断每个集合是否都没有API用例和WEB用例
+            for(PlanCollectionDTO planCollectionDTO: planDTO.getPlanCollections()){
+                List<String> caseTypes = collectionCaseMapper.getCollectionCaseTypes(planCollectionDTO.getCollectionId());
+                if(caseTypes.contains("API") || caseTypes.contains("WEB")){
+                    throw new LMException("所选集合中存在API或WEB用例 环境不能为空");
+                }
+            }
+        }
         if(planDTO.getId().equals("") || planDTO.getId() == null){ // 新增计划
             planDTO.setId(UUID.randomUUID().toString());
             planDTO.setCreateTime(System.currentTimeMillis());
@@ -69,7 +83,6 @@ public class PlanService {
             }
             planMapper.updatePlan(planDTO);
         }
-        planCollectionMapper.deletePlanCollection(planDTO.getId());  //先删除全部计划集合
         List<PlanCollection> planCollections = new ArrayList<>();
         for(PlanCollectionDTO planCollectionDTO: planDTO.getPlanCollections()){
             PlanCollection planCollection = new PlanCollection();
@@ -78,12 +91,25 @@ public class PlanService {
             planCollection.setCollectionId(planCollectionDTO.getCollectionId());
             planCollections.add(planCollection);
         }
-        planCollectionMapper.addPlanCollection(planCollections);
+        planCollectionMapper.deletePlanCollection(planDTO.getId());  //先删除全部计划集合
+        if(planCollections.size() > 0) {
+            planCollectionMapper.addPlanCollection(planCollections);
+        }
+    }
+
+    public void savePlanNotice(PlanNotice planNotice){
+        if(planNotice.getId() == null || planNotice.getId().equals("")){
+            planNotice.setId(UUID.randomUUID().toString());
+            planNoticeMapper.addPlanNotice(planNotice);
+        }else {
+            planNoticeMapper.updatePlanNotice(planNotice);
+        }
     }
 
     public void deletePlan(Plan plan) {
         planCollectionMapper.deletePlanCollection(plan.getId());
         planScheduleMapper.deletePlanSchedule(plan.getId());
+        planNoticeMapper.deletePlanNotice(plan.getId());
         planMapper.deletePlan(plan.getId());
     }
 
@@ -93,6 +119,10 @@ public class PlanService {
         planDTO.setPlanCollections(planCollectionDTOS);
 
         return planDTO;
+    }
+
+    public PlanNotice getPlanNotice(String planId) {
+        return planNoticeMapper.getPlanNotice(planId);
     }
 
     public List<PlanDTO> getPlanList(QueryRequest request){
