@@ -23,14 +23,8 @@ public class EmailUtils {
      */
     private static final String SENDER = "leon.jack@qq.com";
     private static final String AUTH_CODE = "hgqaskhkxihsbhae";
-    /**
-     *   1、创建连接对象，连接到邮箱服务器
-     */
-    public static void sendMail(String receiver, String title, String content, String accessKey, String accessSecret,
-                                String runnerSenderAddress, String runnerSenderName) {
-        IClientProfile profile = DefaultProfile.getProfile("cn-hangzhou", accessKey, accessSecret);
-        IAcsClient client = new DefaultAcsClient(profile);
-        SingleSendMailRequest request = new SingleSendMailRequest();
+    public static void sendMail(String receiver, String title, String content){
+        //1、创建连接对象，连接到邮箱服务器
         try {
             Properties prop = new Properties();
             // 开启debug调试，以便在控制台查看
