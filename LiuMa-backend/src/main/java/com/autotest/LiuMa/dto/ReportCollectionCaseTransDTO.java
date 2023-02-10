@@ -1,5 +1,6 @@
 package com.autotest.LiuMa.dto;
 
+import com.autotest.LiuMa.database.domain.Report;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,7 +19,7 @@ public class ReportCollectionCaseTransDTO {
 
     private String description;
 
-    private String exec;
+    private String execLog;
 
     private String during;
 
