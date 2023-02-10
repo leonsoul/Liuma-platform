@@ -1,13 +1,8 @@
 package com.autotest.LiuMa.database.domain;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import com.autotest.LiuMa.request.CaseApiRequest;
-import com.autotest.LiuMa.request.CaseWebRequest;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.List;
 
 @Data
 public class Case implements Serializable {
@@ -33,7 +28,6 @@ public class Case implements Serializable {
 
     private String system;
 
-    private String commonParam;
     private String commonParam; // 配置信息 包含 导入函数【函数uuid】，导入公参，公用Header，公用Proxy
 
     private Long createTime;//创建时间

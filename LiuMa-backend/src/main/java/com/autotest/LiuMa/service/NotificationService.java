@@ -26,7 +26,7 @@ public class NotificationService {
     private ReportMapper reportMapper;
 
     public void saveNotification(Notification notification){
-        if(notification.getId() == null || notification.getId().equals("")){
+        if(notification.getId() == null || "".equals(notification.getId())){
             //新增通知
             notification.setId(UUID.randomUUID().toString());
             notification.setCreateTime(System.currentTimeMillis());
@@ -47,14 +47,14 @@ public class NotificationService {
     }
 
     public List<Notification> getNotificationList(String projectId, String condition) {
-        if(condition != null && !condition.equals("")){
+        if(condition != null && !"".equals(condition)){
             condition = "%"+condition+"%";
         }
         return notificationMapper.getNotificationList(projectId, condition);
     }
 
     public void sendNotification(Notification notification, TaskDTO task){
-        String taskType = null;
+        String taskType;
         if(task.getType().equals(TaskType.RUN.toString())){
             taskType = "手工执行";
         }else {
@@ -74,6 +74,14 @@ public class NotificationService {
                 replace("{successPercent}", report.getPassRate()).
                 replace("{executeTime}", during +"S");
         // 发送
+//        {"at": {"isAtAll": true}, "msgtype": "markdown",
+//        "markdown": {"text": "#### {reportTitle}\n##### •
+//        任务类型：{taskType}\n##### •  执行人: {user}\n##### •
+//        总用例数: {caseNum}\n##### •  成功数: {caseSuccess}\n##### •
+//        失败数：{caseFail}\n##### •  错误数：{caseError}\n##### •
+//        测试成功率：{successPercent}\n##### •
+//        测试执行时长: {executeTime}",
+//        "title": "流马测试计划执行结果通知"}}
         HttpUtil.post(notification.getWebhookUrl(), params);
     }
 

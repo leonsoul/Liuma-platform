@@ -94,7 +94,7 @@
           pageSize: 10,
           total: 0
         },
-        notificationVisible: false, 
+        notificationVisible: false,
         notificationForm: {},
         notificationData: [],
         notificationOptions: [
@@ -221,7 +221,7 @@
             params = {
               msgtype: "markdown",
               markdown: {
-                title: "流马测试计划执行结果通知",
+                title: "测试平台计划执行结果通知",
                 text: "#### {reportTitle}\n##### •  任务类型：{taskType}\n##### •  执行人: {user}\n##### •  总用例数: {caseNum}\n##### •  成功数: {caseSuccess}\n##### •  失败数：{caseFail}\n##### •  错误数：{caseError}\n##### •  测试成功率：{successPercent}\n##### •  测试执行时长: {executeTime}"
               },
               at: {
@@ -259,7 +259,7 @@
           case 'Wechat':
             return "企业微信";
           default:
-            return 
+            return
         }
       }
     }

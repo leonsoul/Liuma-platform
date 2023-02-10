@@ -14,7 +14,7 @@
         </commentGenerator>
         <!-- jdbc连接信息 -->
         <jdbcConnection driverClass="${spring.datasource.driver-class-name}"
-                        connectionURL="${spring.datasource.url}&amp;nullCatalogMeansCurrent=true"
+                        connectionURL="${spring.datasource.url}&amp;nullCataMeansCurrent=true"
                         userId="${spring.datasource.username}" password="${spring.datasource.password}"/>
         <!-- 模型对象 -->
         <javaModelGenerator targetPackage="com.autotest.LiuMa.database.domain" targetProject="src/main/java">
