@@ -20,7 +20,7 @@
       <template v-slot:dropdown>
         <el-dropdown-menu style="font-size:14px">
           <el-dropdown-item command="personal">个人中心</el-dropdown-item>
-          <el-dropdown-item command="system">配置中心</el-dropdown-item>
+<!--          <el-dropdown-item command="system">配置中心</el-dropdown-item>-->
           <!-- <el-dropdown-item command="help">使用手册</el-dropdown-item> -->
           <!-- <el-dropdown-item command="follow">关注我们</el-dropdown-item>-->
           <el-dropdown-item command="logout">退出</el-dropdown-item>
@@ -113,9 +113,9 @@ export default {
         case "personal":
           this.$router.push({path: '/setting/userSetting'});
           break;
-        case "system":
-          this.$router.push({path: '/setting/systemSetting'})
-          break;
+        // case "system":
+        //   this.$router.push({path: '/setting/systemSetting'})
+        //   break;
         // case "help":
         //   window.open("https://docs.qq.com/doc/p/1e36932d41b40df896c1627a004068df9a28fc3f?dver=3.0.27474319");
         //   break;
