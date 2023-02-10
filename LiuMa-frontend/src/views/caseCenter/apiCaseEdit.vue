@@ -27,9 +27,10 @@
                 <el-input size="mini" style="width: 90%" v-model="scope.row.description" placeholder="请输入步骤描述"/>
             </template>
         </el-table-column>
-        <el-table-column label="操作" width="120px">
+        <el-table-column label="操作" width="150px">
             <template slot-scope="scope">
                 <el-button size="mini" type="text" @click="editCaseApi(scope.$index)">编辑</el-button>
+                <el-button size="mini" type="text" @click="copyCaseApi(scope.$index)">复制</el-button>
                 <el-button size="mini" type="text" @click="deleteCaseApi(scope.$index)">删除</el-button>
             </template>
         </el-table-column>
@@ -234,6 +235,20 @@ export default {
                 this.caseForm.caseApis[i].index = i+1;
             }
         },
+        copyCaseApi(index){
+            let caseApi = {
+                id: getUUID(),
+                index: this.caseForm.caseApis.length+1,
+                apiId: this.caseForm.caseApis[index].apiId,
+                apiMethod: this.caseForm.caseApis[index].apiMethod,
+                apiName: this.caseForm.caseApis[index].apiName,
+                apiPath: this.caseForm.caseApis[index].apiPath,
+              description: this.caseForm.caseApis[index].description
+            }
+            console.log(this.caseForm.caseApis)
+            this.caseForm.caseApis.push(caseApi);
+            this.selections.splice(0, this.selections.length);
+        },
         getDetail(param){
             if (param.caseId){  // 编辑
                 let url = "/autotest/case/detail/api/" + param.caseId;
@@ -289,7 +304,7 @@ export default {
                     let url = '/autotest/case/save';
                     this.$post(url, this.caseForm, response =>{
                         this.$message.success("保存成功");
-                        this.$router.push({path: '/caseCenter/caseManage'});
+                        // this.$router.push({path: '/caseCenter/caseManage'});
                     });
                 }else{
                     return false;
