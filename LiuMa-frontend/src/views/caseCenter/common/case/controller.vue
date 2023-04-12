@@ -28,6 +28,9 @@
                     <el-select v-else-if="controller[scope.$index].name === 'encryption'" style="width: 95%" v-model="controller[scope.$index].value">
                         <el-option v-for="item in signOptList" :key="item.value" :label="item.label" :value="item.value"/>
                     </el-select>
+                    <el-select v-else-if="controller[scope.$index].name === 'From'" style="width: 95%" v-model="controller[scope.$index].value">
+                        <el-option v-for="item in FromOptList" :key="item.value" :label="item.label" :value="item.value"/>
+                    </el-select>
                     <el-select v-else size="small" style="width: 95%" v-model="controller[scope.$index].value">
                         <el-option v-for="item in optList" :key="item.value" :label="item.label" :value="item.value"/>
                     </el-select>
@@ -53,7 +56,7 @@
                     </p>
                 </el-col>
                 <el-col :span="4">
-                    <el-button size="small" type="cancel" @click="showType=null">取消</el-button>
+                    <el-button size="small" type="cancel" @click="cancelCode">取消</el-button>
                     <el-button size="small" type="primary" @click="saveCode">保存</el-button>
                 </el-col>
             </el-row>
@@ -180,10 +183,14 @@ export default {
     components: { CodeEdit },
     props:{
         controller: Array,
+        isCodeEdit: Boolean
     },
     data() {
         return{
             controllerList:[
+                {label: "接口加密", name: "encryption"},
+                {label: "token", name: "token"},
+                {label: "From", name: "From"},
                 {label: "前置脚本", name: "preScript"},
                 {label: "后置脚本", name: "postScript"},
                 {label: "前置等待", name: "sleepBeforeRun"},
@@ -196,9 +203,7 @@ export default {
                 {label: "错误屏蔽", name: "errorContinue"},
                 {label: "条件控制器", name: "whetherExec"},
                 {label: "循环控制器", name: "loopExec"},
-                {label: "接口加密", name: "encryption"},
-                {label: "token", name: "token"},
-                // {label: "token2", name: "token2"},
+
             ],
             functionList: [],
             optList: [
@@ -214,6 +219,13 @@ export default {
               {label: "直播相册", value: "live"},
               {label: "CRM", value: "crm"},
               {label: "不加密", value: false},
+            ],
+            FromOptList:[
+              {label: "pc端项目", value: "100101"},
+              {label: "M端非直播业务", value: "100001"},
+              {label: "app 端项目", value: "110001"},
+              {label: "Android Piufoto", value: "110003"},
+              {label: "IOS Piufoto", value: "110102"},
             ],
             showType: null,
             code: "",
@@ -275,6 +287,8 @@ export default {
                 this.controller[index].value = "{{token}}";
             }else if(val === 'encryption'){
                 this.controller[index].value = "setting";
+            }else if(val === 'From'){
+                this.controller[index].value = "100101";
             }else{
                 this.controller[index].value = true;
             }
@@ -283,19 +297,27 @@ export default {
             this.index = index;
             this.code = this.controller[index].value;
             this.showType = "code";
+            this.isCodeEdit = true;
         },
         saveCode(){
             this.controller[this.index].value = this.code;
             this.showType = null;
+            this.isCodeEdit = false;
+        },
+        cancelCode(){
+            this.showType = null;
+            this.isCodeEdit = false;
         },
         editCondition(index){
             this.index = index;
             this.conditions = JSON.parse(this.controller[index].value);
             this.showType = "table";
+            this.isCodeEdit = true;
         },
         saveCondition(){
             this.controller[this.index].value = JSON.stringify(this.conditions);
             this.showType = null;
+            this.isCodeEdit = false;
         },
         addCondition(){
             this.conditions.push({target:"", assertion:"equals", expect:""});
@@ -323,6 +345,7 @@ export default {
                 this.loop = JSON.parse(this.controller[index].value);
             }
             this.showType = "form";
+            this.isCodeEdit = true;
         },
         saveLoop(){
             this.$refs["loop"].validate(valid => {

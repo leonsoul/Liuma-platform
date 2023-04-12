@@ -21,7 +21,7 @@ CREATE TABLE `api` (
   `path` varchar(200) NOT NULL COMMENT '接口路径',
   `protocol` varchar(20) NOT NULL COMMENT '请求协议',
   `domain_sign` varchar(50) DEFAULT NULL COMMENT '域名标识',
-  `description` varchar(200) DEFAULT NULL COMMENT '接口描述',
+  `description` varchar(10000) DEFAULT NULL COMMENT '接口描述',
   `header` json DEFAULT NULL COMMENT '请求头',
   `body` json DEFAULT NULL COMMENT '请求体',
   `query` json DEFAULT NULL COMMENT '查询参数',

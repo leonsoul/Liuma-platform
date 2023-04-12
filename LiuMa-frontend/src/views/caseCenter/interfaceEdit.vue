@@ -54,7 +54,7 @@
         <el-row>
             <el-col :span="16">
                 <el-form-item label="接口描述">
-                    <el-input size="small" :autosize="{ minRows: 4}" type="textarea" clearable placeholder="请输入接口描述" v-model="apiForm.description" maxlength="200" show-word-limit/>
+                    <el-input size="small" :autosize="{ minRows: 4}" type="textarea" clearable placeholder="请输入接口描述" v-model="apiForm.description" maxlength="10000" show-word-limit/>
                 </el-form-item>
             </el-col>
         </el-row>
@@ -175,6 +175,7 @@ export default {
                     }
                     this.apiForm = data;
                 })
+              console.log(this.apiForm)
             }
         },
         selectModule(data){

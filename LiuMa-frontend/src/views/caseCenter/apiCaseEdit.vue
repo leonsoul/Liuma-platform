@@ -5,7 +5,7 @@
   <div>
     <page-header title="用例编辑" :showDebug="true" :cancel="cancelAdd" :debug="debugCase" :save="saveAdd"/>
     <el-form ref="caseForm" :rules="rules" :model="caseForm" label-width="90px">
-        <base-info :caseForm="caseForm" v-on:getUseFunction="getUseFunction"/>
+        <base-info :caseForm="caseForm" :applications=[] v-on:getUseFunction="getUseFunction"/>
     <p class="tip">接口请求</p>
     <el-form-item style="margin-left:-80px;" prop="caseApis"/>
     <el-table :data="caseForm.caseApis" row-key="id" class="sort-table" size="small">
@@ -27,11 +27,13 @@
                 <el-input size="mini" style="width: 90%" v-model="scope.row.description" placeholder="请输入步骤描述"/>
             </template>
         </el-table-column>
-        <el-table-column label="操作" width="150px">
+        <el-table-column label="操作" width="200px">
             <template slot-scope="scope">
                 <el-button size="mini" type="text" @click="editCaseApi(scope.$index)">编辑</el-button>
                 <el-button size="mini" type="text" @click="copyCaseApi(scope.$index)">复制</el-button>
                 <el-button size="mini" type="text" @click="deleteCaseApi(scope.$index)">删除</el-button>
+                <el-button v-if="caseForm.caseApis[scope.$index].isBan" size="mini" type="text" @click="banCaseApi(scope.$index)">启用</el-button>
+                <el-button v-else size="mini" type="text" @click="banCaseApi(scope.$index)">禁用</el-button>
             </template>
         </el-table-column>
     </el-table>
@@ -46,10 +48,13 @@
         </div>
     </el-dialog>
     <!-- 接口编辑界面 -->
-    <el-drawer title="接口详情" :visible.sync="editCaseApiVisible"  direction="rtl" :with-header="false" destroy-on-close size="900px">
+    <el-drawer title="接口详情" :visible.sync="editCaseApiVisible"  direction="rtl" :with-header="false" destroy-on-close  :closeOnPressEscape="false" :wrapperClosable="false" size="900px">
         <div class="api-drawer-header">
             <span style="float: left; font-size: 16px;">接口详情编辑</span>
-            <el-button size="small" type="primary" style="float: right;" @click="editCaseApiVisible=false">确定</el-button>
+            <div style="float: right;">
+<!--              <el-button size="small"  @click="editCaseApiVisible=false">取消</el-button>-->
+              <el-button size="small" type="primary"  @click="confirmApiSave">确定</el-button>
+            </div>
         </div>
         <div class="api-drawer-body">
             <el-tabs style="width: 100%" v-model="activeTab">
@@ -72,7 +77,7 @@
                     <relation :relation="caseApiForm.relation" :apiId="caseApiForm.apiId" style="width: 100%"/>
                 </el-tab-pane>
                 <el-tab-pane label="逻辑控件" name="controller">
-                    <controller :controller="caseApiForm.controller" style="width: 100%"/>
+                    <controller :controller="caseApiForm.controller" :isCodeEdit="isCodeEdit" style="width: 100%"/>
                 </el-tab-pane>
             </el-tabs>
         </div>
@@ -149,10 +154,13 @@ export default {
                 moduleId: [{ required: true, message: '用例模块不能为空', trigger: 'blur' }],
                 caseApis: [{ required: true, message: '请至少添加一条接口请求', trigger: 'blur' }]
             },
-            FunctionList: []
+            FunctionList: [],
+            isShow: true,
+            isCodeEdit: false
         }
     },
     created() {
+        // 配置顶部跳转面包屑，跳转路由的话需要修改这边和navcon中的结构。如[{'name':'用例中心','path':'/home/dashboard'}]
         this.$root.Bus.$emit('initBread', ["用例中心", "接口用例"]);
         this.getDetail(this.$route.params);
     },
@@ -195,6 +203,13 @@ export default {
             this.selections.splice(0, this.selections.length);
             this.selectApiVisible = false;
         },
+        // 保存接口选择
+        confirmApiSave(){
+            this.editCaseApiVisible=false
+            if(this.isCodeEdit === true){
+              console.log('我在进行编辑')
+            }
+        },
         editCaseApi(index){
             let caseApi = this.caseForm.caseApis[index];
             this.activeTab = "body";
@@ -236,18 +251,21 @@ export default {
             }
         },
         copyCaseApi(index){
-            let caseApi = {
-                id: getUUID(),
-                index: this.caseForm.caseApis.length+1,
-                apiId: this.caseForm.caseApis[index].apiId,
-                apiMethod: this.caseForm.caseApis[index].apiMethod,
-                apiName: this.caseForm.caseApis[index].apiName,
-                apiPath: this.caseForm.caseApis[index].apiPath,
-              description: this.caseForm.caseApis[index].description
-            }
-            console.log(this.caseForm.caseApis)
+            // 拷贝复制的用例的所有数据
+            let caseApi = JSON.parse(JSON.stringify(this.caseForm.caseApis[index]))
+            caseApi.id = getUUID();
+            caseApi.index = this.caseForm.caseApis.length+1;
+            // console.log(this.caseForm.caseApis);
             this.caseForm.caseApis.push(caseApi);
             this.selections.splice(0, this.selections.length);
+        },
+        banCaseApi(index){
+            if(this.caseForm.caseApis[index].isBan === true){
+              this.$set( this.caseForm.caseApis[index],'isBan',false);
+            }
+            else{
+              this.$set( this.caseForm.caseApis[index],'isBan',true);
+            }
         },
         getDetail(param){
             if (param.caseId){  // 编辑
@@ -288,6 +306,7 @@ export default {
                         data.id = "";
                     }
                     this.caseForm = data;
+                    console.log(this.caseForm.caseApis)
                 });
             }
         },
@@ -302,9 +321,13 @@ export default {
                         this.caseForm.caseApis[i].index = i+1;
                     }
                     let url = '/autotest/case/save';
+                    console.log(this.caseForm)
                     this.$post(url, this.caseForm, response =>{
                         this.$message.success("保存成功");
-                        // this.$router.push({path: '/caseCenter/caseManage'});
+                        // 如果是复用过来的用例的话，点击保存返回到用例列表页面，如果是编辑、新增的话，仍然停留在编辑页。
+                        if(this.$route.params.type === 'copy'){
+                          this.$router.push({path: '/caseCenter/caseManage'});
+                        }
                     });
                 }else{
                     return false;
@@ -322,7 +345,16 @@ export default {
             this.runForm.sourceName = this.caseForm.name;
             this.runForm.taskType = "debug";
             this.runForm.projectId = this.$store.state.projectId;
-            this.runForm.debugData = this.caseForm;
+            this.runForm.debugData = JSON.parse(JSON.stringify(this.caseForm));
+
+            for(let i=0 ; i<this.runForm.debugData.caseApis.length; i++){
+                if(this.runForm.debugData.caseApis[i].isBan === true){
+                  // console.log(this.runForm.debugData.caseApis[i]);
+                  this.runForm.debugData.caseApis.splice(i,1);
+                  i--;
+              }
+            }
+            // console.log(this.runForm.debugData.caseApis);
             this.runVisible = true;
         },
         closeRun(){
