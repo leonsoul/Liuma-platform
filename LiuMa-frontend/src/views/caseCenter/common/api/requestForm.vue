@@ -86,7 +86,7 @@ export default {
         getFunction(){
           let url = '/autotest/function/custom/list/' + this.$store.state.projectId;
           this.$get(url, response =>{
-            console.log(this.caseForm)
+            // console.log(this.caseForm)
             if(this.caseForm){
               for(let item of this.caseForm.commonParam.functions){
                 for(let functionItem of response.data){

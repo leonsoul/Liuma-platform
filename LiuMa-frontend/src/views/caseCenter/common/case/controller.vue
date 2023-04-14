@@ -183,7 +183,7 @@ export default {
     components: { CodeEdit },
     props:{
         controller: Array,
-        isCodeEdit: Boolean
+
     },
     data() {
         return{
@@ -250,7 +250,7 @@ export default {
                 num: [{ required: true, message: '循环接口数不能为空', trigger: 'blur' }],
             },
             index: null,
-            text: "获取关联参数/公共参数使用sys_get(name)函数，保存关联参数使用sys_put(name, val)函数，支持直接使用变量名res_code/res_header/res_data/res_cookies/res_bytes获取响应内容"
+            text: "获取关联参数/公共参数使用sys_get(name)函数，保存关联参数使用sys_put(name, val)函数，支持直接使用变量名res_code/res_header/res_data/res_cookies/res_bytes获取响应内容",
         }
     },
     created() {
@@ -297,27 +297,27 @@ export default {
             this.index = index;
             this.code = this.controller[index].value;
             this.showType = "code";
-            this.isCodeEdit = true;
+            this.$emit('editCodeCharge', true)
         },
         saveCode(){
             this.controller[this.index].value = this.code;
             this.showType = null;
-            this.isCodeEdit = false;
+            this.$emit('editCodeCharge', false)
         },
         cancelCode(){
             this.showType = null;
-            this.isCodeEdit = false;
+            this.$emit('editCodeCharge', false)
         },
         editCondition(index){
             this.index = index;
             this.conditions = JSON.parse(this.controller[index].value);
             this.showType = "table";
-            this.isCodeEdit = true;
+            this.$emit('editCodeCharge', true)
         },
         saveCondition(){
             this.controller[this.index].value = JSON.stringify(this.conditions);
             this.showType = null;
-            this.isCodeEdit = false;
+            this.$emit('editCodeCharge', false)
         },
         addCondition(){
             this.conditions.push({target:"", assertion:"equals", expect:""});
@@ -345,10 +345,11 @@ export default {
                 this.loop = JSON.parse(this.controller[index].value);
             }
             this.showType = "form";
-            this.isCodeEdit = true;
+            this.isCodeEditing = true;
         },
         saveLoop(){
             this.$refs["loop"].validate(valid => {
+                
                 if (valid) {
                     this.controller[this.index].value = JSON.stringify(this.loop);
                     this.showType = null;
@@ -357,7 +358,7 @@ export default {
                 }
             })
         },
-    }
+    },
 }
 </script>
 <style scoped>

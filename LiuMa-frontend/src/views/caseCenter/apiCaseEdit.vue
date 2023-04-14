@@ -52,7 +52,7 @@
         <div class="api-drawer-header">
             <span style="float: left; font-size: 16px;">接口详情编辑</span>
             <div style="float: right;">
-<!--              <el-button size="small"  @click="editCaseApiVisible=false">取消</el-button>-->
+              <el-button size="small"  @click="confirmApiCancel">取消</el-button>
               <el-button size="small" type="primary"  @click="confirmApiSave">确定</el-button>
             </div>
         </div>
@@ -77,7 +77,7 @@
                     <relation :relation="caseApiForm.relation" :apiId="caseApiForm.apiId" style="width: 100%"/>
                 </el-tab-pane>
                 <el-tab-pane label="逻辑控件" name="controller">
-                    <controller :controller="caseApiForm.controller" :isCodeEdit="isCodeEdit" style="width: 100%"/>
+                    <controller :controller="caseApiForm.controller" @editCodeCharge="editCodeCharge" style="width: 100%"/>
                 </el-tab-pane>
             </el-tabs>
         </div>
@@ -140,6 +140,8 @@ export default {
                 relation: [],
                 controller: []
             },
+            caseApiFormCopy:{},
+            caseApiIndexCopy: 0,
             activeTab: "body",
             runForm: {
                 engineId: "",
@@ -205,9 +207,15 @@ export default {
         },
         // 保存接口选择
         confirmApiSave(){
-            this.editCaseApiVisible=false
+
             if(this.isCodeEdit === true){
-              console.log('我在进行编辑')
+                this.isCodeEdit = false;
+                this.$message.warning('正在进行编辑，再次点击确定能够进行保存，不会保存当前代码数据');
+
+            }
+            else{
+                this.editCaseApiVisible=false
+                // this.$message.success('我关闭了');
             }
         },
         editCaseApi(index){
@@ -243,6 +251,12 @@ export default {
                 this.caseApiForm = caseApi;
                 this.editCaseApiVisible = true;
             }
+            this.caseApiIndexCopy = index
+            this.caseApiFormCopy = JSON.parse(JSON.stringify(this.caseApiForm))
+        },
+        confirmApiCancel(){
+            this.caseForm.caseApis[this.caseApiIndexCopy] = JSON.parse(JSON.stringify(this.caseApiFormCopy));
+            this.editCaseApiVisible = false;
         },
         deleteCaseApi(index){
             this.caseForm.caseApis.splice(index, 1);
@@ -374,6 +388,13 @@ export default {
         getUseFunction(data){
           console.log(data)
           this.FunctionList = data
+        },
+        editCodeCharge(flag){
+            if(flag==true){
+                this.isCodeEdit = true;
+            }else{
+                this.isCodeEdit = false;
+            }
         }
     }
 }
