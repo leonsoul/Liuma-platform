@@ -50,9 +50,12 @@
                 <el-col :span="20">
                     <p class="tip">
                         <span>编辑脚本</span>
-                        <el-tooltip :content="text" placement="bottom">
+                        <el-tooltip :content="text" placement="bottom" >
                         <i class="el-icon-info"></i>
                         </el-tooltip>
+                        <el-select size="small" style="width: 50%;float:right;" v-model="code" filterable clearable placeholder="请选择本用例需要使用的自定义函数">
+                            <el-option v-for="item in functionListDetail" :key="item.id" :label="item.name" :value="item.code"/>
+                        </el-select>
                     </p>
                 </el-col>
                 <el-col :span="4">
@@ -183,7 +186,7 @@ export default {
     components: { CodeEdit },
     props:{
         controller: Array,
-
+        functionListDetail: Array,
     },
     data() {
         return{
@@ -230,6 +233,7 @@ export default {
             showType: null,
             code: "",
             conditions: Array,
+            functionCode:{},
             loop: {
                 type: "FOR",
                 target: "",
@@ -251,9 +255,11 @@ export default {
             },
             index: null,
             text: "获取关联参数/公共参数使用sys_get(name)函数，保存关联参数使用sys_put(name, val)函数，支持直接使用变量名res_code/res_header/res_data/res_cookies/res_bytes获取响应内容",
+
         }
     },
     created() {
+        // console.log(this.functionListDetail)
         this.getAssertion();
     },
     methods: {
@@ -273,9 +279,9 @@ export default {
             this.controller.splice(0, this.controller.length);
         },
         changeController(val, index){
-            if(val === "sleepBeforeRun" | val ==="sleepAfterRun"){
+            if(val === "sleepBeforeRun" || val ==="sleepAfterRun"){
                 this.controller[index].value = 30;
-            }else if(val ==="preScript" | val ==="postScript"){
+            }else if(val ==="preScript" || val ==="postScript"){
                 this.controller[index].value = "";
             }else if(val === "whetherExec"){
                 this.controller[index].value = "[]";
@@ -349,7 +355,7 @@ export default {
         },
         saveLoop(){
             this.$refs["loop"].validate(valid => {
-                
+
                 if (valid) {
                     this.controller[this.index].value = JSON.stringify(this.loop);
                     this.showType = null;

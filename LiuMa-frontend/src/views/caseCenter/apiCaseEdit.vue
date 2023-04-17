@@ -5,7 +5,7 @@
   <div>
     <page-header title="用例编辑" :showDebug="true" :cancel="cancelAdd" :debug="debugCase" :save="saveAdd"/>
     <el-form ref="caseForm" :rules="rules" :model="caseForm" label-width="90px">
-        <base-info :caseForm="caseForm" :applications=[] v-on:getUseFunction="getUseFunction"/>
+        <base-info :caseForm="caseForm" :applications=[] v-on:getUseFunction="getUseFunction" v-on:callbackUseFunctionDetail="callbackUseFunctionDetail" />
     <p class="tip">接口请求</p>
     <el-form-item style="margin-left:-80px;" prop="caseApis"/>
     <el-table :data="caseForm.caseApis" row-key="id" class="sort-table" size="small">
@@ -62,7 +62,7 @@
                     <request-header :reqHeader="caseApiForm.header" style="width: 100%"/>
                 </el-tab-pane>
                 <el-tab-pane label="请求体" name="body">
-                    <request-body :caseForm="caseForm" :reqBody="caseApiForm.body"   style="width: 100%"/>
+                    <request-body :caseForm="caseForm" :reqBody="caseApiForm.body" :functionListDetail="functionListDetail"  style="width: 100%"/>
                 </el-tab-pane>
                 <el-tab-pane label="QUERY参数" name="query">
                     <request-query :reqQuery="caseApiForm.query" :reqBody="caseApiForm.body" style="width: 100%"/>
@@ -77,7 +77,7 @@
                     <relation :relation="caseApiForm.relation" :apiId="caseApiForm.apiId" style="width: 100%"/>
                 </el-tab-pane>
                 <el-tab-pane label="逻辑控件" name="controller">
-                    <controller :controller="caseApiForm.controller" @editCodeCharge="editCodeCharge" style="width: 100%"/>
+                    <controller :controller="caseApiForm.controller" :functionListDetail="functionListDetail" @editCodeCharge="editCodeCharge" style="width: 100%"/>
                 </el-tab-pane>
             </el-tabs>
         </div>
@@ -158,7 +158,8 @@ export default {
             },
             FunctionList: [],
             isShow: true,
-            isCodeEdit: false
+            isCodeEdit: false,
+            functionListDetail: [],
         }
     },
     created() {
@@ -335,9 +336,12 @@ export default {
                         this.caseForm.caseApis[i].index = i+1;
                     }
                     let url = '/autotest/case/save';
-                    console.log(this.caseForm)
+                    // console.log(this.caseForm)
                     this.$post(url, this.caseForm, response =>{
-                        this.$message.success("保存成功");
+                      console.log(response)
+                        if(response.status===0){
+                          this.$message.success("保存成功");
+                        }
                         // 如果是复用过来的用例的话，点击保存返回到用例列表页面，如果是编辑、新增的话，仍然停留在编辑页。
                         if(this.$route.params.type === 'copy'){
                           this.$router.push({path: '/caseCenter/caseManage'});
@@ -389,12 +393,14 @@ export default {
           console.log(data)
           this.FunctionList = data
         },
+        callbackUseFunctionDetail(data){
+          // 获得子组件传递过来的所有的自定义函数信息
+          // console.log('callbackUseFunctionDetail拿到的数据',data)
+          this.functionListDetail = data
+        },
         editCodeCharge(flag){
-            if(flag==true){
-                this.isCodeEdit = true;
-            }else{
-                this.isCodeEdit = false;
-            }
+            // 判断前后置脚本是否为关闭状态
+            this.isCodeEdit = flag === true;
         }
     }
 }
@@ -407,7 +413,7 @@ export default {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0px 20px;
+    padding: 0 20px;
 }
 .api-drawer-body{
     padding: 10px 20px;

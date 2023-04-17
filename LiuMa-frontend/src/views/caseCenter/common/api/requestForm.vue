@@ -51,6 +51,7 @@ export default {
   props:{
     reqForm: Array,
     caseForm: Object,
+    functionListDetail: Array,
   },
   data() {
       return{
@@ -84,18 +85,16 @@ export default {
             this.reqForm.splice(0, this.reqForm.length);
         },
         getFunction(){
-          let url = '/autotest/function/custom/list/' + this.$store.state.projectId;
-          this.$get(url, response =>{
-            // console.log(this.caseForm)
-            if(this.caseForm){
-              for(let item of this.caseForm.commonParam.functions){
-                for(let functionItem of response.data){
-                  if (functionItem.id === item)
-                    this.functionList = this.functionList.concat(functionItem)
-                }
+          // 获得添加进来的自定义函数的所有信息
+          if(this.caseForm){
+            for(let item of this.caseForm.commonParam.functions){
+              for(let functionItem of this.functionListDetail){
+                if (functionItem.id === item)
+                  this.functionList = this.functionList.concat(functionItem)
               }
             }
-          });
+          }
+
         },
       querySearch(queryString, cb) {
         let res = []

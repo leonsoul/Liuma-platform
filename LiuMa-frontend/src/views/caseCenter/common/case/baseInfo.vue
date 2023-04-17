@@ -173,6 +173,7 @@ export default {
             let url = '/autotest/function/custom/list/' + this.$store.state.projectId;
             this.$get(url, response =>{
                 this.functionList = response.data;
+                this.$emit('callbackUseFunctionDetail', this.functionList)
             });
         },
         getParam(){
