@@ -144,14 +144,11 @@ export default {
     methods: {
         // 点击模块
         clickModule(data){
-          console.log("点击模块");
           this.searchForm.moduleId = data.id;
             this.getdata(this.searchForm);
         },
         // 添加模块
         appendModule(data) {
-          console.log("add module");
-
           if (data){
                 this.moduleForm.parentId = data.id;
                 this.moduleForm.parentName = data.label;
@@ -167,6 +164,10 @@ export default {
         removeModule(args) {
             let node = args[0];
             let data = args[1];
+            if(data.children.length != 0){
+                this.$message.warning("当前模块有子模块, 无法删除");
+                return;
+            }
             let url = '/autotest/module/delete';
             this.$post(url, data, response =>{
                 const parent = node.parent;

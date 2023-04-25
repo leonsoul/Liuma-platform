@@ -1,6 +1,7 @@
 package com.autotest.LiuMa.controller;
 
 import com.autotest.LiuMa.database.domain.Device;
+import com.autotest.LiuMa.dto.DeviceDTO;
 import com.autotest.LiuMa.request.QueryRequest;
 import com.autotest.LiuMa.service.DeviceService;
 import org.springframework.web.bind.annotation.*;
@@ -18,38 +19,49 @@ public class DeviceController {
     @Resource
     private DeviceService deviceService;
 
-    @GetMapping("/filter")
-    public HashMap<String, List<String>> getDeviceFilter(HttpServletRequest request) {
+    @GetMapping("/filter/{projectId}")
+    public HashMap<String, List<String>> getDeviceFilter(@PathVariable String projectId, HttpServletRequest request) {
         String user = request.getSession().getAttribute("userId").toString();
-        return deviceService.getDeviceFilter(user);
+        return deviceService.getDeviceFilter(user, projectId);
     }
 
-    @PostMapping("/stop/{serial}")
-    public void stopUseDevice(@PathVariable String serial) {
-        deviceService.stopUseDevice(serial);
+    @PostMapping("/stop/{deviceId}")
+    public void stopUseDevice(@PathVariable String deviceId) {
+        deviceService.stopUseDevice(deviceId);
     }
 
-    @PostMapping("/use/{serial}/{timeout}")
-    public Boolean UseDevice(@PathVariable String serial, @PathVariable Integer timeout,  HttpServletRequest request) {
+    @PostMapping("/active/{deviceId}")
+    public Boolean activeDevice(@PathVariable String deviceId, HttpServletRequest request) {
         String user = request.getSession().getAttribute("userId").toString();
-        return deviceService.useDevice(serial, timeout, user);
+        return deviceService.activeDevice(deviceId, user);
     }
 
-    @GetMapping("/detail/{serial}")
-    public Device getDeviceDetail(@PathVariable String serial) {
-        return deviceService.getDeviceDetail(serial);
+    @PostMapping("/update")
+    public void updateDevice(@RequestBody Device device) {
+        deviceService.updateDevice(device);
+    }
+
+    @PostMapping("/use/{deviceId}/{timeout}")
+    public Boolean UseDevice(@PathVariable String deviceId, @PathVariable Integer timeout,  HttpServletRequest request) {
+        String user = request.getSession().getAttribute("userId").toString();
+        return deviceService.useDevice(deviceId, timeout, user);
+    }
+
+    @GetMapping("/detail/{deviceId}")
+    public Device getDeviceDetail(@PathVariable String deviceId) {
+        return deviceService.getDeviceDetail(deviceId);
     }
 
     @PostMapping("/list")
-    public List<Device> getDeviceList( @RequestBody QueryRequest queryRequest,  HttpServletRequest request){
+    public List<DeviceDTO> getDeviceList(@RequestBody QueryRequest queryRequest, HttpServletRequest request){
         String user = request.getSession().getAttribute("userId").toString();
         return deviceService.getDeviceList(queryRequest, user);
     }
 
-    @GetMapping("/{system}/list")
-    public List<Device> getDeviceListBySystem(@PathVariable String system, HttpServletRequest request){
+    @GetMapping("/{system}/list/{projectId}")
+    public List<Device> getDeviceListBySystem(@PathVariable String system, @PathVariable String projectId, HttpServletRequest request){
         String user = request.getSession().getAttribute("userId").toString();
-        return deviceService.getDeviceListBySystem(system, user);
+        return deviceService.getDeviceListBySystem(projectId, system, user);
     }
 
 }

@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.parser.Feature;
 import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.autotest.LiuMa.common.constants.DeviceStatus;
 import com.autotest.LiuMa.common.constants.ReportSourceType;
 import com.autotest.LiuMa.common.exception.LMException;
 import com.autotest.LiuMa.common.utils.FileUtils;
@@ -51,6 +52,9 @@ public class CaseJsonCreateService {
     private CaseAppMapper caseAppMapper;
 
     @Resource
+    private CollectionMapper collectionMapper;
+
+    @Resource
     private DebugDataMapper debugDataMapper;
 
     @Resource
@@ -86,6 +90,12 @@ public class CaseJsonCreateService {
     @Resource
     private ApplicationMapper applicationMapper;
 
+    @Resource
+    private DriverMapper driverMapper;
+
+    @Resource
+    private DatabaseMapper databaseMapper;
+
     public String getDownloadUrl(TaskDTO task, List<TaskTestCollectionResponse> testCollectionList){
         String taskFilePath = TASK_FILE_PATH+"/"+task.getProjectId()+"/"+task.getId();
         String taskZipPath = TASK_FILE_PATH+"/"+task.getProjectId();
@@ -104,7 +114,7 @@ public class CaseJsonCreateService {
                     // 同一个集合下同一条用例文件重复就覆盖 因数据一样没必要生成两份
                     FileUtils.createJsonFile(taskCase, collectionFilePath + "/" + testCase.getCaseId() + ".json");
                 }else { // APP用例
-                    TestCaseAppResponse testCase = this.getAppTestCaseJson(task.getEnvironmentId(),task.getSourceType(), taskTestCase);
+                    TestCaseAppResponse testCase = this.getAppTestCaseJson(taskTestCollection.getDeviceId(), task.getSourceType(), taskTestCase);
                     JSONObject taskCase = JSONObject.parseObject(JSONObject.toJSONString(testCase, SerializerFeature.WriteMapNullValue), Feature.OrderedField);
                     // 同一个集合下同一条用例文件重复就覆盖 因数据一样没必要生成两份
                     FileUtils.createJsonFile(taskCase, collectionFilePath + "/" + testCase.getCaseId() + ".json");
@@ -130,7 +140,7 @@ public class CaseJsonCreateService {
             TestCaseWebResponse testCase = this.getWebTestCaseJson(task.getEnvironmentId(),task.getSourceType(), taskTestCase);
             return JSONObject.parseObject(JSONObject.toJSONString(testCase, SerializerFeature.WriteMapNullValue), Feature.OrderedField);
         }else { // app用例
-            TestCaseAppResponse testCase = this.getAppTestCaseJson(task.getDeviceId(),task.getSourceType(), taskTestCase);
+            TestCaseAppResponse testCase = this.getAppTestCaseJson(testCollectionList.get(0).getDeviceId(),task.getSourceType(), taskTestCase);
             return JSONObject.parseObject(JSONObject.toJSONString(testCase, SerializerFeature.WriteMapNullValue), Feature.OrderedField);
         }
     }
@@ -151,7 +161,12 @@ public class CaseJsonCreateService {
             // 组装应用信息
             Application application = applicationMapper.getApplicationById(caseRequest.getCommonParam().getString("appId"));
             testCaseApp.setAppId(application.getAppId());
-            testCaseApp.setActivity(caseRequest.getCommonParam().getString("activity"));
+            if(caseRequest.getCommonParam().getString("activity")!=null &&
+                    !caseRequest.getCommonParam().getString("activity").equals("")){
+                testCaseApp.setActivity(caseRequest.getCommonParam().getString("activity"));
+            }else {
+                testCaseApp.setActivity(application.getMainActivity());
+            }
             // 组装设备信息
             Device device = deviceMapper.getDeviceById(deviceId);
             testCaseApp.setDeviceSystem(device.getSystem());
@@ -196,17 +211,24 @@ public class CaseJsonCreateService {
             // 组装应用信息
             Application application = applicationMapper.getApplicationById(commonParam.getString("appId"));
             testCaseApp.setAppId(application.getAppId());
-            testCaseApp.setActivity(commonParam.getString("activity"));
-            // 组装设备信息
-            Device device = deviceMapper.getDeviceById(deviceId);
-            testCaseApp.setDeviceSystem(device.getSystem());
-            if(device.getSystem().equals("android")) {
-                testCaseApp.setDeviceUrl(JSONObject.parseObject(device.getSources()).getString("atxAgentAddress"));
+            if(commonParam.getString("activity")!=null &&
+                    !commonParam.getString("activity").equals("")){
+                testCaseApp.setActivity(commonParam.getString("activity"));
             }else {
-                testCaseApp.setDeviceUrl(JSONObject.parseObject(device.getSources()).getString("wdaUrl"));
+                testCaseApp.setActivity(application.getMainActivity());
+            }
+            // 组装设备信息
+            if(deviceId != null) {  // 测试集合或测试计划执行时设备可能不在线 无法执行 将在引擎返回的执行日志中提示
+                Device device = deviceMapper.getDeviceById(deviceId);
+                testCaseApp.setDeviceSystem(device.getSystem());
+                if (device.getSystem().equals("android")) {
+                    testCaseApp.setDeviceUrl(JSONObject.parseObject(device.getSources()).getString("atxAgentAddress"));
+                } else {
+                    testCaseApp.setDeviceUrl(JSONObject.parseObject(device.getSources()).getString("wdaUrl"));
+                }
             }
             // 组装操作
-            List<CaseAppDTO> caseApps = caseAppMapper.getCaseAppList(taskTestCase.getCaseId(), taskTestCase.getCaseType());
+            List<CaseAppDTO> caseApps = caseAppMapper.getCaseAppList(taskTestCase.getCaseId(), taskTestCase.getCaseType().toLowerCase(Locale.ROOT));
             List<TestCaseAppDataResponse> optList = new ArrayList<>();
             for (CaseAppDTO caseAppDTO:caseApps){
                 TestCaseAppDataResponse optData = new TestCaseAppDataResponse();
@@ -248,6 +270,8 @@ public class CaseJsonCreateService {
             // 组装浏览器开关配置
             testCaseWeb.setStartDriver(caseRequest.getCommonParam().getBoolean("startDriver"));
             testCaseWeb.setCloseDriver(caseRequest.getCommonParam().getBoolean("closeDriver"));
+            // 组装浏览器driver配置
+            testCaseWeb.setDriverSetting(this.getDriverSetting(caseRequest.getCommonParam()));
             // 组装操作
             List<CaseWebRequest> caseWebs = caseRequest.getCaseWebs();
             List<TestCaseWebDataResponse> optList = new ArrayList<>();
@@ -283,6 +307,8 @@ public class CaseJsonCreateService {
             // 组装浏览器开关配置
             testCaseWeb.setStartDriver(commonParam.getBoolean("startDriver"));
             testCaseWeb.setCloseDriver(commonParam.getBoolean("closeDriver"));
+            // 组装浏览器driver配置
+            testCaseWeb.setDriverSetting(this.getDriverSetting(commonParam));
             // 组装操作
             List<CaseWebDTO> caseWebs = caseWebMapper.getCaseWebList(taskTestCase.getCaseId(), taskTestCase.getCaseType().toLowerCase(Locale.ROOT));
             List<TestCaseWebDataResponse> optList = new ArrayList<>();
@@ -348,7 +374,7 @@ public class CaseJsonCreateService {
                 apiData.setRelations(caseApiRequest.getRelation());
                 apiData.setAssertions(caseApiRequest.getAssertion());
                 // 组装controller
-                apiData.setController(this.getApiController(caseApiRequest.getController()));
+                apiData.setController(this.getApiController(environmentId, caseApiRequest.getController()));
                 apiList.add(apiData);
             }
             testCaseApi.setApiList(apiList);
@@ -388,7 +414,7 @@ public class CaseJsonCreateService {
                 apiData.setRelations(JSONArray.parseArray(caseApiDTO.getRelation()));
                 apiData.setAssertions(JSONArray.parseArray(caseApiDTO.getAssertion()));
                 // 组装controller
-                apiData.setController(this.getApiController(JSONArray.parseArray(caseApiDTO.getController())));
+                apiData.setController(this.getApiController(environmentId, JSONArray.parseArray(caseApiDTO.getController())));
                 apiList.add(apiData);
             }
             testCaseApi.setApiList(apiList);
@@ -444,6 +470,18 @@ public class CaseJsonCreateService {
             }
         }
         return dataObj;
+    }
+
+    public JSONObject getDriverSetting(JSONObject commonParam){
+        if(!commonParam.containsKey("driverSetting")){
+            return new JSONObject();
+        }
+        String driverId = commonParam.getString("driverSetting");
+        Driver driver = driverMapper.getDriverById(driverId);
+        if(driver == null){
+            return new JSONObject();
+        }
+        return JSONObject.parseObject(driver.getSetting());
     }
 
     public JSONObject getWebElement(JSONArray elements){
@@ -508,14 +546,42 @@ public class CaseJsonCreateService {
         return dataObj;
     }
 
-    public JSONObject getApiController(JSONArray controller){
+    public JSONObject getApiController(String environmentId, JSONArray controller){
         JSONObject controllerObj = new JSONObject();
         if(controller == null){
             return controllerObj;
         }
+        JSONArray pre = new JSONArray();    // 前置脚本和sql
+        JSONArray post = new JSONArray();   // 后置脚本和sql
         for(int i =0; i<controller.size(); i++) {
             JSONObject controllerData = controller.getJSONObject(i);
-            controllerObj.put(controllerData.getString("name"), controllerData.getString("value"));
+            String controllerName = controllerData.getString("name");
+            String controllerValue = controllerData.getString("value");
+            if(controllerName.contains("Sql") && !controllerValue.equals("{}")){ // 处理sql中的数据库连接信息
+                JSONObject value = JSONObject.parseObject(controllerValue);
+                Database database = databaseMapper.getDatabaseByName(environmentId, value.getString("db"));
+                JSONObject db = new JSONObject();
+                if(database != null){
+                    db = JSONObject.parseObject(database.getConnectInfo());
+                    db.put("tpz", database.getDatabaseType());
+                    db.put("db", database.getDatabaseKey());
+                }
+                value.put("db", db);
+                controllerData.put("value", value.toJSONString());
+            }
+            if(controllerName.startsWith("pre")){
+                pre.add(controllerData);
+            }else if(controllerName.startsWith("post")){
+                post.add(controllerData);
+            }else {
+                controllerObj.put(controllerName, controllerData.getString("value"));
+            }
+        }
+        if(pre.size()>0){
+            controllerObj.put("pre", pre);
+        }
+        if(post.size()>0){
+            controllerObj.put("post", post);
         }
         return controllerObj;
     }
@@ -654,6 +720,14 @@ public class CaseJsonCreateService {
             for(PlanCollectionDTO planCollectionDTO:planCollections){
                 TaskTestCollectionResponse taskTestCollection = new TaskTestCollectionResponse();
                 taskTestCollection.setCollectionId(planCollectionDTO.getCollectionId());
+                Collection collection = collectionMapper.getCollectionDetail(planCollectionDTO.getCollectionId());
+                if(collection==null) return taskTestCollectionList;
+                if(this.getDeviceCouldUsing(collection.getDeviceId(), task.getCreateUser(), task.getId())){
+                    taskTestCollection.setDeviceId(collection.getDeviceId());
+                }else {
+                    taskTestCollection.setDeviceId(null);
+                }
+                taskTestCollection.setDeviceId(collection.getDeviceId());
                 List<TaskTestCaseResponse> taskTestCaseList = this.getTaskTestCaseList(planCollectionDTO.getCollectionId());
                 taskTestCollection.setTestCaseList(taskTestCaseList);
                 taskTestCollectionList.add(taskTestCollection);
@@ -661,12 +735,20 @@ public class CaseJsonCreateService {
         }else if(task.getSourceType().equals(ReportSourceType.COLLECTION.toString())){
             TaskTestCollectionResponse taskTestCollection = new TaskTestCollectionResponse();
             taskTestCollection.setCollectionId(task.getSourceId());
+            Collection collection = collectionMapper.getCollectionDetail(task.getSourceId());
+            if(collection==null) return taskTestCollectionList;
+            if(this.getDeviceCouldUsing(collection.getDeviceId(), task.getCreateUser(), task.getId())){
+                taskTestCollection.setDeviceId(collection.getDeviceId());
+            }else {
+                taskTestCollection.setDeviceId(null);
+            }
             List<TaskTestCaseResponse> taskTestCaseList = this.getTaskTestCaseList(task.getSourceId());
             taskTestCollection.setTestCaseList(taskTestCaseList);
             taskTestCollectionList.add(taskTestCollection);
         }else if(task.getSourceType().equals(ReportSourceType.CASE.toString())){
             TaskTestCollectionResponse taskTestCollection = new TaskTestCollectionResponse();
             taskTestCollection.setCollectionId(task.getSourceId());
+            taskTestCollection.setDeviceId(task.getDeviceId());
             List<TaskTestCaseResponse> taskTestCaseList = new ArrayList<>();
             TaskTestCaseResponse taskTestCase = new TaskTestCaseResponse();
             taskTestCase.setIndex(1L);
@@ -681,6 +763,7 @@ public class CaseJsonCreateService {
             CaseRequest caseRequest = JSONObject.parseObject(debugData.getData(), CaseRequest.class);
             TaskTestCollectionResponse taskTestCollection = new TaskTestCollectionResponse();
             taskTestCollection.setCollectionId(task.getSourceId());
+            taskTestCollection.setDeviceId(task.getDeviceId());
             List<TaskTestCaseResponse> taskTestCaseList = new ArrayList<>();
             TaskTestCaseResponse taskTestCase = new TaskTestCaseResponse();
             taskTestCase.setIndex(1L);
@@ -705,5 +788,21 @@ public class CaseJsonCreateService {
             taskTestCaseList.add(taskTestCase);
         }
         return taskTestCaseList;
+    }
+
+    private Boolean getDeviceCouldUsing(String deviceId, String user, String taskId){
+        if(null == deviceId){
+            return false;
+        }
+        Device device = deviceMapper.getDeviceById(deviceId);
+        if(!device.getStatus().equals(DeviceStatus.ONLINE.toString())){
+            return false;
+        }
+        device.setStatus(DeviceStatus.TESTING.toString());
+        device.setUpdateTime(System.currentTimeMillis());
+        device.setUser(taskId);
+        device.setTimeout(-1);  // 测试中设备不予超时
+        deviceMapper.updateDevice(device);  // 占用设备
+        return true;
     }
 }

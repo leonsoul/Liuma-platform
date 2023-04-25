@@ -26,11 +26,13 @@ public class Device implements Serializable {
 
     private String owner;
 
-    private String user;
+    private String user;    // 设备使用者 可能是用户id或者任务id
 
     private String agent;
 
     private Integer timeout;
+
+    private String projectId;
 
     private Long createTime;
 

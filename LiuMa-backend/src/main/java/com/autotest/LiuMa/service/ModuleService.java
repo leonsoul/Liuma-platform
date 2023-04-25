@@ -1,6 +1,7 @@
 package com.autotest.LiuMa.service;
 
-import com.autotest.LiuMa.common.exception.DuplicateContentException;
+import com.autotest.LiuMa.common.exception.DuplicateException;
+import com.autotest.LiuMa.common.exception.LMException;
 import com.autotest.LiuMa.database.mapper.ModuleMapper;
 import com.autotest.LiuMa.dto.ModuleDTO;
 import org.springframework.stereotype.Service;
@@ -19,9 +20,10 @@ public class ModuleService {
     private ModuleMapper moduleMapper;
 
     public ModuleDTO save(ModuleDTO module) {
-        ModuleDTO oldModule = moduleMapper.getModuleByParentAndName(module.getModuleType(), module.getName(), module.getParentId());
+        ModuleDTO oldModule = moduleMapper.getModuleByParentAndName(module.getModuleType(),
+                module.getName(), module.getParentId(), module.getProjectId());
         if(oldModule != null){
-            throw new DuplicateContentException("当前父模块下已有重名模块");
+            throw new DuplicateException("当前父模块下已有重名模块");
         }
         if(module.getId() == null){
             //新增模块
@@ -39,12 +41,11 @@ public class ModuleService {
     }
 
     public void delete(ModuleDTO module) {
-        moduleMapper.deleteModule(module.getModuleType(), module.getId());
-        if(module.getChildren() != null) {
-            for (ModuleDTO moduleDTO : module.getChildren()) {
-                this.delete(moduleDTO);
-            }
+        Integer count = moduleMapper.getModuleDataById(module.getModuleType(), module.getId());
+        if(count>0){
+            throw new LMException("当前模块下已有相关数据，无法删除！");
         }
+        moduleMapper.deleteModule(module.getModuleType(), module.getId());
     }
 
     public List<ModuleDTO> getModuleList(String moduleType, String projectId){

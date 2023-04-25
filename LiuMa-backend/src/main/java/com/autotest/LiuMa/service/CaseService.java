@@ -153,6 +153,10 @@ public class CaseService {
         caseMapper.deleteCase(caseRequest.getId());
     }
 
+    public String getCaseSystem(String caseId){
+        return caseMapper.getCaseSystem(caseId);
+    }
+
     public CaseDTO getCaseDetail(String caseType, String caseId) {
         CaseDTO caseDTO = caseMapper.getCaseDetail(caseId);
         if(caseType.equalsIgnoreCase("API")){
@@ -166,6 +170,9 @@ public class CaseService {
                 for(int i=0;i<elementList.size();i++){
                     JSONObject element = elementList.getJSONObject(i);
                     String elementId = element.getString("id");
+                    if(elementId == null || elementId.equals("")){
+                        continue;
+                    }
                     ElementDTO elementDTO = elementMapper.getElementById(elementId);
                     element.put("by", elementDTO.getBy());
                     element.put("name", elementDTO.getName());
@@ -184,6 +191,9 @@ public class CaseService {
                 for(int i=0;i<controlList.size();i++){
                     JSONObject control = controlList.getJSONObject(i);
                     String controlId = control.getString("id");
+                    if(controlId == null || controlId.equals("")){
+                        continue;
+                    }
                     ControlDTO controlDTO = controlMapper.getControlById(controlId);
                     control.put("system", controlDTO.getSystem());
                     control.put("by", controlDTO.getBy());

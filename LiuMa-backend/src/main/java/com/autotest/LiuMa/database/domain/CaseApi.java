@@ -1,7 +1,5 @@
 package com.autotest.LiuMa.database.domain;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import lombok.Data;
 
 import java.io.Serializable;

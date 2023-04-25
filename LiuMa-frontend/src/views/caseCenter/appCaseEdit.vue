@@ -30,7 +30,11 @@
         </el-table-column>
         <el-table-column label="步骤描述" min-width="200px">
             <template slot-scope="scope">
-                <el-input size="mini" style="width: 90%" v-model="scope.row.description" placeholder="请输入步骤描述"/>
+                <div v-if="scope.row.edit==true" >
+                  <el-input size="mini" style="width: 85%" v-model="scope.row.description" placeholder="请输入步骤描述" @change="scope.row.edit=false"/>
+                  <i class="el-icon-success" @click="scope.row.edit=false"/>
+                </div>
+                <span v-else>{{scope.row.description}} <i class="el-icon-edit"  @click="scope.row.edit=true"/></span>
             </template>
         </el-table-column>
         <el-table-column label="操作" width="150px">
@@ -44,7 +48,7 @@
     </el-form>
     <el-button size="small" icon="el-icon-plus" type="text" @click="addCaseApp(-1)">新增操作</el-button>
     <!-- 添加操作界面 -->
-    <el-dialog title="选择操作" :visible.sync="editOperationVisible" width="750px" destroy-on-close>
+    <el-dialog title="选择操作" :visible.sync="editOperationVisible" width="750px" destroy-on-close :modal-append-to-body="false">
         <el-form ref="operationForm" :rules="rules" :model="operationForm" label-width="100px" label-position="top">
           <el-form-item label="操作名称" prop="operationId">
             <el-cascader size="small" style="width: 100%" filterable :options="operations" v-model="operationForm.operationIds" :show-all-levels="false"
@@ -121,7 +125,7 @@
         </div>
     </el-dialog>
     <!-- 添加属性定位 -->
-    <el-dialog title="编辑属性" :visible.sync="editExpressionVisible" width="550px" destroy-on-close>
+    <el-dialog title="编辑属性" :visible.sync="editExpressionVisible" width="550px" destroy-on-close :modal-append-to-body="false">
         <el-row v-for="(item, index) in expressionForm" :key="index" style="margin-bottom:10px">
             <el-col :span="8">
                 <el-select size="small" style="width:95%" v-model="item.propName" placeholder="属性名">
@@ -144,7 +148,7 @@
         </div>
     </el-dialog>
     <!-- 用例调试选择引擎和环境 -->
-    <run-form :runForm="runForm" :runVisible="runVisible" :showDevice="true" @closeRun="closeRun" @run="run($event)"/>
+    <run-form :runForm="runForm" :runVisible="runVisible" :showDevice="true" :deviceSystem="caseForm.system" @closeRun="closeRun" @run="run($event)"/>
     <!-- 用例执行结果展示 -->
     <run-result :taskId="taskId" :caseType="caseForm.type" :resultVisable="resultVisable" @closeResult="closeResult"/>
   </div>
@@ -162,6 +166,17 @@ import {locateBys, locateProps, systemKeys, elementProps} from '@/utils/constant
 
 export default {
     components:{PageHeader, BaseInfo, RunForm, SelectTree, RunResult},
+    name: 'AppCaseEdit',
+    props:{
+        caseId: {
+          type: String,
+          default: null
+        },
+        system: {
+          type: String,
+          default: null
+        }
+    },
     data() {
         return{
             caseForm: {
@@ -212,7 +227,8 @@ export default {
             runVisible: false,
             runForm: {
                 engineId: "",
-                environmentId: []
+                environmentId: [],
+                deviceId: ""
             },
             resultVisable: false,
             taskId: "",
@@ -230,7 +246,11 @@ export default {
     },
     created() {
         this.$root.Bus.$emit('initBread', ["用例中心", "APP用例"]);
-        this.caseForm.system = this.$route.params.system;
+        if(this.system!==null){
+          this.caseForm.system = this.system;
+        }else{
+          this.caseForm.system = this.$route.params.system;
+        }
         if(this.caseForm.system === "android"){
             this.propList = locateProps.android;
             this.byList = locateBys.android;
@@ -246,7 +266,11 @@ export default {
         this.getOperations();
         this.getAssertion();
         this.getViews();
-        this.getDetail(this.$route.params);
+        if(this.system!==null){
+          this.getDetail({caseId: this.caseId});
+        }else{
+          this.getDetail(this.$route.params);
+        }
     },
     methods: {
         // 行拖拽
@@ -313,6 +337,12 @@ export default {
                   break;
                 }
               }
+            }else if(datas[i].paramName === "continue"){
+              if(datas[i].value === true){
+                newText = datas[i].paramName+ " : "  + "是";
+              }else{
+                newText = datas[i].paramName+ " : "  + "否";
+              }
             }
             else{
               newText = datas[i].paramName+ " : " +datas[i].value;
@@ -333,7 +363,9 @@ export default {
               operationId: "",
               operationName: "",
               element: [],
-              data: []
+              data: [],
+              edit: false,
+              description: ""
           };
           this.editOperationVisible = true;
         },
@@ -345,7 +377,9 @@ export default {
             operationId: row.operationId,
             operationName: row.operationName,
             element: row.element,
-            data: row.data
+            data: row.data,
+            edit: row.edit,
+            description: row.description
           };
           for(let i=0;i<row.element.length;i++){
             if(row.element[i].selectElements != undefined & row.element[i].selectElements > 0){
@@ -364,7 +398,9 @@ export default {
             operationId: row.operationId,
             operationName: row.operationName,
             element: JSON.parse(JSON.stringify(row.element)),
-            data: JSON.parse(JSON.stringify(row.data))
+            data: JSON.parse(JSON.stringify(row.data)),
+            edit: false,
+            description: row.description
           };
           for(let i=0;i<row.element.length;i++){
             if(row.element[i].selectElements != undefined & row.element[i].selectElements > 0){
@@ -390,7 +426,8 @@ export default {
           for(let i=0;i<data.length;i++){
             if(data[i].paramName === 'continue'){
               data[i].value = false;
-              break;
+            }else{
+              data[i].value = "";
             }
           }
           this.operationForm.data = data;
@@ -533,6 +570,7 @@ export default {
                         caseApp.data = JSON.parse(caseApp.data);
                         caseApp.elementText = this.elementToText(caseApp.element);
                         caseApp.dataText = this.dataToText(caseApp.data);
+                        caseApp.edit = false;
                     }
                     if(param.type === "copy"){ //复用
                         data.id = "";
@@ -560,7 +598,11 @@ export default {
             });
         },
         cancelAdd(){
-            this.$router.push({path: '/caseCenter/caseManage'})
+            if(this.system!==null){
+              this.$emit("closeDrawer");
+            }else{
+              this.$router.push({path: '/caseCenter/caseManage'});
+            }
         },
         saveAdd(){
             this.$refs["caseForm"].validate(valid => {
@@ -575,7 +617,11 @@ export default {
                     let url = '/autotest/case/save';
                     this.$post(url, this.caseForm, response =>{
                         this.$message.success("保存成功");
-                        this.$router.push({path: '/caseCenter/caseManage'});
+                        if(this.system !==null){
+                          this.$emit("closeDrawer");
+                        }else{
+                          this.$router.push({path: '/caseCenter/caseManage'});
+                        }
                     });
                 }else{
                     return false;
@@ -583,9 +629,13 @@ export default {
             });
         },
         debugCase(){
-            if(!this.caseForm.commonParam.application){
+            if(!this.caseForm.commonParam.appId){
                 this.$message.warning("被测应用为空 无法调试");
                 return;
+            }
+            if(this.system !== null){
+              this.$emit("debugCase", this.caseForm);
+              return;
             }
             // 用例调试
             this.runForm.engineId = 'system';
@@ -608,7 +658,6 @@ export default {
                 this.taskId = response.data.id;
                 this.resultVisable = true;
             });
-
             this.runVisible = false;
         },
         closeResult(){

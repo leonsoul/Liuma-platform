@@ -27,14 +27,14 @@
                     @change="handleCheckAllChange(scope.row)">全部</el-checkbox>
                 </template>
             </el-table-column>
-            <el-table-column label="" prop="conditions" min-width="1000">
-                <template slot-scope="scope" style="dispaly: flex">
+            <el-table-column prop="conditions">
+                <template slot-scope="scope">
                     <el-checkbox-group v-model="scope.row.selected" @change="handleCheckedChange(scope.row)">
-                        <el-checkbox style="width: 9.5%; float:left" v-for="condition in scope.row.conditions" :label="condition" :key="condition">{{condition}}</el-checkbox>
+                        <el-checkbox :style="'width:'+filterWidth+'px; float:left'" v-for="condition in scope.row.conditions" :label="condition" :key="condition">{{condition}}</el-checkbox>
                     </el-checkbox-group>
                 </template>
             </el-table-column>
-            <el-table-column label="" align="right" prop="more" width="80px">
+            <el-table-column align="right" prop="more" width="80px">
                 <template slot-scope="scope">
                     <el-button type="text" v-if="scope.row.showMore" size="small" @click="showMore(scope.row)">{{scope.row.showBtn}} <i :class="scope.row.icon"/></el-button>
                 </template>
@@ -43,20 +43,21 @@
         <!-- 设备列表 -->
         <div class="device-table">
             <div v-for="(devicesRow, index) in devicesData" :key="index" class="device-box-row">
-                <div v-for="(device, index) in devicesRow" :key="index" class="device-box">
+                <div v-for="(device, index) in devicesRow" :key="index" class="device-box" :style="'width:'+boxWidth+'px'">
                     <div class="device-box-border">
                         <div class="device-box-info">
                             <div class="box-header">
                                 <span style="float: left;">
-                                    <i v-if="device.status==='offline'" class="el-icon-warning-outline tpw-warning"> 已离线</i>
-                                    <i v-if="device.status==='online'" class="el-icon-video-play tpw-success"> 空闲中</i>
-                                    <i v-if="device.status==='using'" class="el-icon-video-pause tpw-error"> 占用中</i>
-                                    <i v-if="device.status==='testing'" class="el-icon-video-pause tpw-error"> 测试中</i>
-                                    <i v-if="device.status==='colding'" class="tpw-loading"><i class="el-icon-loading"/> 冷却中</i>
+                                    <i v-if="device.status==='offline'" class="el-icon-warning-outline lm-info"> 已离线</i>
+                                    <i v-if="device.status==='online'" class="el-icon-video-play lm-success"> 空闲中</i>
+                                    <i v-if="device.status==='using'" class="el-icon-video-pause lm-fail"> 占用中</i>
+                                    <i v-if="device.status==='testing'" class="el-icon-video-pause lm-error"> 测试中</i>
+                                    <i v-if="device.status==='colding'" class="lm-loading"><i class="el-icon-loading"/> 冷却中</i>
                                 </span>
                                 <el-button style="float: right" size="mini" v-if="device.status==='online'" type="primary" @click="useDevice(device)">立即使用</el-button>
                                 <el-button style="float: right" size="mini" v-if="device.status==='using' && device.user===currentUser" type="danger" @click="releaseDevice(device)">停用</el-button>
-                                <el-button style="float: right" size="mini" v-if="device.status==='using' && device.user!==currentUser" type="info" disabled><i class="el-icon-s-custom"> {{device.user}}</i></el-button>
+                                <el-button style="float: right" size="mini" v-if="device.status==='using' && device.user!==currentUser" type="info" disabled><i class="el-icon-s-custom long-user"> {{device.username}}</i></el-button>
+                                <el-button style="float: right" size="mini" v-if="device.status==='testing' && currentUser === 'system_admin_user'" type="danger" @click="releaseDevice(device)">停止测试</el-button>
                                 <el-button style="float: right" size="mini" v-if="device.status==='testing'" type="primary" @click="viewDevice(device)">查看</el-button>
                             </div>
                             <div class="box-body">
@@ -64,15 +65,16 @@
                                     <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:15px">
                                         <span style="font-weight:bold;font-size:16px;">{{device.name}}</span>
                                     </div>
-                                    <i class="el-icon-edit-outline" style="font-size:12px;margin-left:-12px;margin-top:6px" @click="editDevice(device)"/>
+                                    <i class="el-icon-edit-outline" style="font-size:12px;margin-left:-12px;margin-top:5px" @click="editDevice(device)"/>
                                 </div>
                                 <div style="display:flex; margin-top: 30px">
-                                    <img class="box-img" :src="device.img" alt=""/>
+                                    <img v-if="device.system==='android'" class="box-img" :style="'width:'+ 72*boxWidth/250+'px;height:'+72*boxWidth/250*1.5+'px'" src="../../assets/img/android.png" alt=""/>
+                                    <img v-if="device.system==='apple'" class="box-img" :style="'width:'+ 72*boxWidth/250+'px;height:'+72*boxWidth/250*1.5+'px'"  src="../../assets/img/apple.png" alt=""/>
                                     <div>
-                                        <div class="box-info">品牌: {{device.brand}}</div>
-                                        <div class="box-info">型号: {{device.model}}</div>
-                                        <div class="box-info">系统: {{device.system}} {{device.version}}</div>
-                                        <div class="box-info">分辨率: {{device.size}}</div>
+                                        <div class="box-info" :style="'width:'+(boxWidth-72*boxWidth/250-60)+'px'">品牌: {{device.brand}}</div>
+                                        <div class="box-info" :style="'width:'+(boxWidth-72*boxWidth/250-60)+'px'">型号: {{device.model}}</div>
+                                        <div class="box-info" :style="'width:'+(boxWidth-72*boxWidth/250-60)+'px'">系统: {{device.system}} {{device.version}}</div>
+                                        <div class="box-info" :style="'width:'+(boxWidth-72*boxWidth/250-60)+'px'">分辨率: {{device.size}}</div>
                                     </div>
                                 </div>
                             </div>
@@ -101,6 +103,7 @@ export default {
   data() {
     return {
       searchForm: {
+        projectId: this.$store.state.projectId,
         condition: '',
         status: '',
         filter: {
@@ -128,6 +131,8 @@ export default {
       rules: {
         name: [{ required: true, message: '设备名称不能为空', trigger: 'blur' }]
       },
+      filterWidth: 80,
+      filterSize: 8,
       boxWidth: 250,
       rowSize: 5,
       keys: {
@@ -144,24 +149,21 @@ export default {
     let that = this;
     erd.listenTo(document.getElementsByClassName('device-list'), function(element) {
       that.getWidth();
+      that.getFilter();
+      that.getData();
     });
     this.getWidth();
+    this.getFilter();
     this.getData();
-  },
-  watch: {
-    boxWidth: function (n, o) {
-      this.getData();
-    }
   },
   created() {
     this.$root.Bus.$emit('initBread', ["环境中心", "设备管理"]);
     this.currentUser = this.$store.state.userInfo.id;
-    this.getFilter();
   },
   methods: {
     // 获取过滤条件
     getFilter() {
-      let url = '/autotest/device/filter';
+      let url = '/autotest/device/filter/' + this.$store.state.projectId;
       this.$get(url, response => {
         let filter = response.data;
         this.filterData = [];
@@ -169,7 +171,7 @@ export default {
           let filterName = this.keys[key];
           let conditions = [];
           for (let i = 0; i < filter[key].length; i++) {
-            if (i < 8) {
+            if (i < this.filterSize) {
               conditions.push(filter[key][i]);
             } else {
               break;
@@ -207,8 +209,14 @@ export default {
     // 获取屏幕宽度
     getWidth() {
       let screenWidth = document.getElementsByClassName('device-list')[0].clientWidth + 20;
-      this.rowSize = parseInt(screenWidth / 250);
-      this.boxWidth = parseInt(screenWidth / this.rowSize);
+      this.rowSize = parseInt(screenWidth / 270) + 1;
+      this.boxWidth = parseInt(screenWidth / this.rowSize) - 20;
+      if(this.boxWidth < 250){
+        this.rowSize -= 1;
+        this.boxWidth = parseInt(screenWidth / this.rowSize) - 20;
+      }
+      this.filterSize = parseInt((screenWidth-350) / 80);
+      this.filterWidth = parseInt((screenWidth-350) / this.filterSize);
     },
     // 搜索按钮
     search() {
@@ -233,7 +241,7 @@ export default {
     handleCheckAllChange(row) {
       row.isIndeterminate = false;
       if (row.selectAll) {
-        row.selected = row.conditions;
+        row.selected = row.allConditions;
       } else {
         row.selected = [];
       }
@@ -260,17 +268,17 @@ export default {
         row.showBtn = '收起';
         row.icon = 'el-icon-arrow-up';
       } else {
-        row.conditions = row.allConditions.slice(0, 8);
+        row.conditions = row.allConditions.slice(0, this.filterSize);
         row.showBtn = '更多';
         row.icon = 'el-icon-arrow-down';
       }
     },
     // 使用设备
     useDevice(device) {
-      let url = '/autotest/device/use/' + device.serial + "/600"; // 默认十分钟超时
+      let url = '/autotest/device/use/' + device.id + "/600"; // 默认十分钟超时
       this.$post(url, null, response => {
         if(response.data === true){
-          let path = "/#/envCenter/deviceControl/" + device.serial;
+          let path = "/#/envCenter/deviceControl/" + device.system + "/" + device.id;
           this.getData();
           window.open(path);
         }else{
@@ -281,14 +289,14 @@ export default {
     // 释放设备
     releaseDevice(device) {
       device.status = "colding";
-      let url = '/autotest/device/stop/' + device.serial;
+      let url = '/autotest/device/stop/' + device.id;
       this.$post(url, null, response => {
         this.getData();
       });
     },
     // 查看设备
     viewDevice(device) {
-      window.open("/#/envCenter/deviceControl/" + device.serial);
+      window.open("/#/envCenter/deviceControl/" + device.system + "/" + device.id);
     },
     editDevice(device) {
       this.deviceForm.serial = device.serial;
@@ -303,7 +311,7 @@ export default {
             serial: form.serial,
             name: form.name
           };
-          this.result = this.$request.post(url, {apiServer: 'cloudphone', data: data}).then(response => {
+          this.result = this.$post(url, data).then(response => {
             this.$message.success('保存成功');
             this.deviceVisible = false;
             // 更新列表
@@ -371,15 +379,22 @@ export default {
     padding: 20px;
 }
 .box-img{
-    width: 72px;
+    width: 72*boxWidth/250;
     height: 108px;
     margin-right: 10px;
 }
 .box-info{
     font-size: 12px;
     margin-bottom: 15px;
+    width: 100px;
     overflow-x: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+.long-user{
+  width: 80px;
+  overflow-x: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>
