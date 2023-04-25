@@ -1,7 +1,5 @@
 package com.autotest.LiuMa.database.domain;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -15,6 +13,8 @@ public class CaseApi implements Serializable {
     private String caseId; // 用例id uuid
 
     private String apiId; // APIid  uuid
+
+    private String description;
 
     private String header; // 请求头
 

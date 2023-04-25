@@ -12,7 +12,11 @@ public class Operation implements Serializable {
 
     private String type;
 
+    private String uiType;
+
     private String from;
+
+    private String system;
 
     private String element;
 
@@ -31,5 +35,7 @@ public class Operation implements Serializable {
     private String createUser;
 
     private String updateUser;
+
+    private Integer status;
 
 }

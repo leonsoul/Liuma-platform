@@ -11,7 +11,9 @@ public interface ModuleMapper {
 
     void deleteModule(String moduleType, String id);
 
-    ModuleDTO getModuleByParentAndName(String moduleType, String name, String parentId);
+    ModuleDTO getModuleByParentAndName(String moduleType, String name, String parentId, String projectId);
 
     List<ModuleDTO> getModuleList(String moduleType, String projectId);
+
+    Integer getModuleDataById(String moduleType, String moduleId);
 }

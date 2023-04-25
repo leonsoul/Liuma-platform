@@ -3,8 +3,9 @@ package com.autotest.LiuMa.service;
 import com.autotest.LiuMa.common.constants.EngineStatus;
 import com.autotest.LiuMa.common.constants.EngineType;
 import com.autotest.LiuMa.common.constants.ReportStatus;
-import com.autotest.LiuMa.common.exception.DuplicateContentException;
+import com.autotest.LiuMa.common.exception.DuplicateException;
 import com.autotest.LiuMa.database.domain.Engine;
+import com.autotest.LiuMa.database.domain.Task;
 import com.autotest.LiuMa.database.mapper.EngineMapper;
 import com.autotest.LiuMa.database.mapper.ReportMapper;
 import com.autotest.LiuMa.database.mapper.TaskMapper;
@@ -33,7 +34,7 @@ public class EngineService {
     public Engine saveEngine(Engine engine) {
         Engine oldEngine = engineMapper.getEngineByName(engine.getProjectId(), engine.getName());
         if(oldEngine != null){
-            throw new DuplicateContentException("当前项目已有重名引擎");
+            throw new DuplicateException("当前项目已有重名引擎");
         }
         engine.setId(UUID.randomUUID().toString().replace("-", ""));
         engine.setSecret(UUID.randomUUID().toString().replace("-",""));
@@ -50,14 +51,16 @@ public class EngineService {
     public void deleteEngine(Engine engine) {engineMapper.deleteEngine(engine.getId());
     }
 
-    public void stopEngineTask(String taskId) {
-        reportMapper.updateReportStatusByTask(ReportStatus.DISCONTINUE.toString(), taskId);
-        taskMapper.updateTask(ReportStatus.DISCONTINUE.toString(), taskId);
+    public void stopEngineTask(Task task) {
+        reportMapper.updateReportStatusByTask(ReportStatus.DISCONTINUE.toString(), task.getId());
+        taskMapper.updateTask(ReportStatus.DISCONTINUE.toString(), task.getId());
+        engineMapper.updateStatus(task.getEngineId(), EngineStatus.ONLINE.toString());
     }
 
     public void stopEngineAllTask(String engineId) {
         reportMapper.updateAllReportStatusByEngine(ReportStatus.DISCONTINUE.toString(), engineId);
         taskMapper.updateEngineAllTask(ReportStatus.DISCONTINUE.toString(), engineId);
+        engineMapper.updateStatus(engineId, EngineStatus.ONLINE.toString());
     }
 
     public EngineDTO getEngineById(String id){

@@ -3,11 +3,11 @@ package com.autotest.LiuMa.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.autotest.LiuMa.common.utils.PageUtils;
 import com.autotest.LiuMa.common.utils.Pager;
-import com.autotest.LiuMa.dto.ApiDTO;
 import com.autotest.LiuMa.dto.CaseDTO;
-import com.autotest.LiuMa.request.ApiRequest;
+import com.autotest.LiuMa.request.ApiParamRuleRequest;
 import com.autotest.LiuMa.request.CaseRequest;
 import com.autotest.LiuMa.request.QueryRequest;
+import com.autotest.LiuMa.service.CaseGenerateService;
 import com.autotest.LiuMa.service.CaseService;
 import com.autotest.LiuMa.service.ReportService;
 import com.github.pagehelper.Page;
@@ -29,6 +29,9 @@ public class CaseController {
     @Resource
     private ReportService reportService;
 
+    @Resource
+    private CaseGenerateService caseGenerateService;
+
     @PostMapping("/save")
     public void saveCase(@RequestBody CaseRequest caseRequest, HttpServletRequest request) {
         // 保存用例管理的用例
@@ -47,6 +50,11 @@ public class CaseController {
         return caseService.getCaseDetail(caseType, caseId);
     }
 
+    @GetMapping("/system/{caseId}")
+    public String getCaseSystem(@PathVariable String caseId){
+        return caseService.getCaseSystem(caseId);
+    }
+
     @PostMapping("/list/{goPage}/{pageSize}")
     public Pager<List<CaseDTO>> getCaseList(@PathVariable int goPage, @PathVariable int pageSize,
                                            @RequestBody QueryRequest request) {
@@ -57,5 +65,12 @@ public class CaseController {
     @GetMapping("/api/report/{apiId}")
     public JSONObject getLastApiReport(@PathVariable String apiId){
         return reportService.getLastApiReport(apiId);
+    }
+
+    @PostMapping("/auto/generate")
+    public void generateCase(@RequestBody ApiParamRuleRequest ruleRequest, HttpServletRequest request){
+        String user = request.getSession().getAttribute("userId").toString();
+        ruleRequest.setCreateUser(user);
+        caseGenerateService.generateCase(ruleRequest);
     }
 }

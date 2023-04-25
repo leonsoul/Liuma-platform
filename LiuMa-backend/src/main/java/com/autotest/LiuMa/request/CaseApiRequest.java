@@ -18,6 +18,9 @@ public class CaseApiRequest {
     private String apiId; // APIid  uuid
 
     private JSONArray header; // 请求头
+    private String description;
+
+    private JSONArray header;
 
     private JSONObject body; // 请求data
 

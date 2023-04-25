@@ -5,6 +5,7 @@ import Vue from 'vue';
 import ElementUI from 'element-ui';
 import 'element-ui/lib/theme-chalk/index.css';
 Vue.use(ElementUI);
+import editor from 'vue2-ace-editor'
 // 引入App
 import App from './App';
 // 引入路由
@@ -16,8 +17,10 @@ import './assets/icon/iconfont.css';
 // 引入全局样式
 import '../static/css/index.css';
 // 引入axios
-import ajax from './utils/ajax'
+import ajax from './utils/ajax';
+import axios from 'axios';
 Vue.use(ajax);
+Vue.prototype.$axios = axios;
 
 Vue.config.productionTip = false;
 

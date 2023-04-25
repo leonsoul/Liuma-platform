@@ -6,6 +6,7 @@ import lombok.Setter;
 @Setter
 @Getter
 public class RunRequest {
+    private String deviceId;
     private String engineId; // 引擎id
     private String environmentId; // 环境ID 使用uuid
     private String sourceType; // 来源类型，来自集合等等
@@ -16,4 +17,7 @@ public class RunRequest {
     private String projectId; //项目id 使用uuid
 
     private CaseRequest debugData;
+
+    private String user;
+    private String planId;
 }

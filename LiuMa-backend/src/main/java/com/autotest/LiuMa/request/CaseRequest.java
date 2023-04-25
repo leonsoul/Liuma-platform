@@ -34,6 +34,9 @@ public class CaseRequest {
     private JSONArray environmentIds; // 环境列表 列表形式 uuid
 
     private JSONObject commonParam; // 配置信息 包含 导入函数【函数uuid】，导入公参，公用Header，公用Proxy
+    private String system;
+
+    private JSONObject commonParam;
 
     private Long createTime;//创建时间
 
@@ -48,4 +51,6 @@ public class CaseRequest {
     private List<CaseApiRequest> caseApis; //API用例列表
 
     private List<CaseWebRequest> caseWebs;
+
+    private List<CaseAppRequest> caseApps;
 }
