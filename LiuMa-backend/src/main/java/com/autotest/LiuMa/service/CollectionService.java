@@ -34,6 +34,17 @@ public class CollectionService {
         boolean hasAndroidCase = false;
         boolean hasAppleCase = false;
         List<CollectionCase> collectionCases = new ArrayList<>();
+        if(collectionDTO.getId().equals("") || collectionDTO.getId() == null){ // 新增集合
+            collectionDTO.setId(UUID.randomUUID().toString());
+            collectionDTO.setCreateTime(System.currentTimeMillis());
+            collectionDTO.setUpdateTime(System.currentTimeMillis());
+            collectionDTO.setCreateUser(collectionDTO.getUpdateUser());
+            collectionMapper.addCollection(collectionDTO);
+        }else{ // 修改集合
+            collectionDTO.setUpdateTime(System.currentTimeMillis());
+            collectionMapper.updateCollection(collectionDTO);
+        }
+        // 收集测试用例
         for(CollectionCaseDTO collectionCaseDTO: collectionDTO.getCollectionCases()){
             if(collectionCaseDTO.getCaseType().equals("ANDROID")){
                 hasAndroidCase = true;
@@ -41,6 +52,7 @@ public class CollectionService {
             if(collectionCaseDTO.getCaseType().equals("APPLE")){
                 hasAppleCase = true;
             }
+            // 将该用例存到集合用例的数据库中
             CollectionCase collectionCase = new CollectionCase();
             collectionCase.setId(UUID.randomUUID().toString());
             collectionCase.setIndex(collectionCaseDTO.getIndex());
@@ -64,16 +76,7 @@ public class CollectionService {
             }
         }
 
-        if(collectionDTO.getId().equals("") || collectionDTO.getId() == null){ // 新增集合
-            collectionDTO.setId(UUID.randomUUID().toString());
-            collectionDTO.setCreateTime(System.currentTimeMillis());
-            collectionDTO.setUpdateTime(System.currentTimeMillis());
-            collectionDTO.setCreateUser(collectionDTO.getUpdateUser());
-            collectionMapper.addCollection(collectionDTO);
-        }else{ // 修改集合
-            collectionDTO.setUpdateTime(System.currentTimeMillis());
-            collectionMapper.updateCollection(collectionDTO);
-        }
+
         collectionCaseMapper.deleteCollectionCase(collectionDTO.getId());  //先删除全部集合用例
         if(collectionCases.size() > 0) {
             collectionCaseMapper.addCollectionCase(collectionCases);
