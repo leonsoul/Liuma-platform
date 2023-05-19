@@ -70,13 +70,13 @@
         </el-form-item>
 
         </div>
-          <el-form-item label="请求路径" prop="username">
+          <el-form-item label="请求路径" prop="username" v-show = "switchImportMethod==='showdoc'" style="width: 93%">
             <el-input v-model="uploadFileForm.url"></el-input>
           </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button size="small" @click="uploadFileVisible=false">取消</el-button>
-        <el-button size="small" type="primary" @click="submitFileForm('uploadFileForm', uploadFileForm)">上传</el-button>
+        <el-button size="small" type="primary" @click="submitFileForm('uploadFileForm', uploadFileForm)">确认</el-button>
       </div>
     </el-dialog>
   </div>
@@ -178,7 +178,7 @@ export default {
           console.log("调用上传api");
           console.log("valid: " + valid);
           if (valid) {
-              let url = '/autotest/import/api';
+
               let platformType;
               if (this.uploadFileForm.apiSource === "1"){
                 platformType = "postman";
@@ -195,20 +195,27 @@ export default {
             this.searchForm.module_id = this.uploadFileForm.moduleId  //更新查询module接口的参数
             console.log("上传api的参数: " , data);
             if(this.uploadFileForm.apiSource === "3"){
+
+              data.request_url = this.uploadFileForm.url;
+              let url = '/autotest/import/api_other';
               this.$post(url,data,response =>{
-                this.$message.success("上传成功");
+                this.uploadFileVisible = false; //关闭弹窗
+                console.log(response['data'])
+                this.$message.success(response['data']);
                 this.getdata(this.searchForm);
               })
             } else {
+              let url = '/autotest/import/api';
               let file = form.fileList[0];
               console.log("prepare to send");
               this.$fileUpload(url, file, null, data, response =>{
+                this.uploadFileVisible = false; //关闭弹窗
                 this.$message.success("上传成功");
                 this.getdata(this.searchForm);
               });
             }
 
-            this.uploadFileVisible = false; //关闭弹窗
+
           }else{
             this.$message({
               message: "请检查必填项是否完整!",
