@@ -57,7 +57,7 @@
                 </template>
             </el-table-column>
         </el-table>
-        <el-button size="small" icon="el-icon-plus" type="text" @click="selectCaseVisible=true">新增</el-button>  
+        <el-button size="small" icon="el-icon-plus" type="text" @click="selectCaseVisible=true">新增</el-button>
     </el-form>
     <!-- 添加用例界面 -->
     <el-dialog title="选择用例" :visible.sync="selectCaseVisible" width="800px" destroy-on-close>
@@ -95,7 +95,7 @@ export default {
                 name: [{ required: true, message: '集合名称不能为空', trigger: 'blur' }],
                 versionId: [{ required: true, message: '版本不能为空', trigger: 'blur' }],
                 collectionCases: [{ required: true, message: '请至少选择一条测试用例', trigger: 'blur' }],
-                
+
             }
         }
     },
@@ -188,7 +188,7 @@ export default {
                     return false;
                 }
             });
-            
+
         },
     }
 }

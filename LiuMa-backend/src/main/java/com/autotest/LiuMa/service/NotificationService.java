@@ -63,6 +63,7 @@ public class NotificationService {
         ReportDTO report = reportMapper.getReportDetail(task.getReportId());
         User user = userMapper.getUserInfo(task.getCreateUser());
         Long during = (report.getEndTime() - report.getStartTime()) / 1000;
+        // todo 修改为对应的路径
         String params = notification.getParams().
                 replace("{reportTitle}", report.getName()).
                 replace("{taskType}", taskType).
@@ -72,7 +73,8 @@ public class NotificationService {
                 replace("{caseFail}", report.getFailCount().toString()).
                 replace("{caseError}", report.getErrorCount().toString()).
                 replace("{successPercent}", report.getPassRate()).
-                replace("{executeTime}", during +"S");
+                replace("{executeTime}", during +"S").
+                replace("{reportUrl}", "http://1.117.81.152/#/report/testReport/detail/" +report.getId());
         // 发送
 //        {"at": {"isAtAll": true}, "msgtype": "markdown",
 //        "markdown": {"text": "#### {reportTitle}\n##### •

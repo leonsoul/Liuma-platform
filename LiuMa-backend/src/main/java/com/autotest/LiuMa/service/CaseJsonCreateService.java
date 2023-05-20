@@ -133,7 +133,7 @@ public class CaseJsonCreateService {
 
     public JSONObject getDebugData(TaskDTO task, List<TaskTestCollectionResponse> testCollectionList){
         TaskTestCaseResponse taskTestCase = testCollectionList.get(0).getTestCaseList().get(0);
-        if(taskTestCase.getCaseType().equals("API")){
+        if(taskTestCase.getCaseType().equals("API")){ // api用例
             TestCaseApiResponse testCase = this.getApiTestCaseJson(task.getEnvironmentId(),task.getSourceType(), taskTestCase);
             return JSONObject.parseObject(JSONObject.toJSONString(testCase, SerializerFeature.WriteMapNullValue), Feature.OrderedField);
         }else if(taskTestCase.getCaseType().equals("WEB")){ // web用例

@@ -49,16 +49,18 @@
     <!--上传文件的弹窗-->
     <el-dialog title="上传文件" :visible.sync="uploadFileVisible" width="600px" destroy-on-close>
       <el-form label-width="120px" style="padding-right: 30px;" :model="uploadFileForm" :rules="rules" ref="uploadFileForm">
-        <el-form-item label="文件来源" prop="sourceType">
-          <el-radio-group v-model="uploadFileForm.sourceType">
-            <el-radio label="postman">postman</el-radio>
-            <el-radio label="swagger">swagger3</el-radio>
+        <el-form-item label="文件来源" prop="apiSource">
+          <el-radio-group v-model="uploadFileForm.apiSource">
+            <el-radio label="1" @click.native="switchSwagger">postman</el-radio>
+            <el-radio label="2" @click.native="switchSwagger">swagger3</el-radio>
+            <el-radio label="3" @click.native="switchShowdoc">showdoc</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="选择模块" prop="moduleId">
           <select-tree style="width:90%" placeholder="请选择导入后的模块" :selectedValue="uploadFileForm.moduleId"
                        :selectedLabel="uploadFileForm.moduleName" :treeData="treeData" @selectModule="selectModule($event)"/>
         </el-form-item>
+        <div v-show="switchImportMethod==='file'">
         <el-form-item label="选择文件" prop="fileList">
           <el-upload class="upload-demo" :file-list="uploadFileForm.fileList" :before-upload="beforeUpload" :http-request="uploadFile"
                      :on-remove="removeFile" :on-exceed="handleExceed" drag action :limit="1" ref="upload">
@@ -67,10 +69,15 @@
             <div class="el-upload__tip" slot="tip">只能上传单个文件，且不超过50M</div>
           </el-upload>
         </el-form-item>
+
+        </div>
+          <el-form-item label="请求路径" prop="username" v-show = "switchImportMethod==='showdoc'" style="width: 93%">
+            <el-input v-model="uploadFileForm.url"></el-input>
+          </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button size="small" @click="uploadFileVisible=false">取消</el-button>
-        <el-button size="small" type="primary" @click="submitFileForm('uploadFileForm', uploadFileForm)">上传</el-button>
+        <el-button size="small" type="primary" @click="submitFileForm('uploadFileForm', uploadFileForm)">确认</el-button>
       </div>
     </el-dialog>
     <!-- 自动生成用例配置 -->
@@ -101,16 +108,22 @@ export default {
     },
     data() {
         return{
-            uploadFileVisible: false,
-            uploadFileForm : { 
-              sourceType: "postman",
+            // apiSource : "",
+            uploadFileVisible: false,//控制上传api的dialog
+            uploadFileForm : {//上传api信息的dict
+              apiSource: "", //导入api的来源   1:postman  2:swagger 3:showdoc
               fileList: [],
-              moduleId:"",  
-              moduleName:""
+              moduleId:"",   //用于import_api的dialog 中的下拉选择框
+              moduleName:"", //用于import_api的dialog 中的下拉选择框
+              url:""
+            },
+            form: {
+              username: '',
+              password: ''
             },
             rules:{
-              sourceType:[{ required: true, message: '文件来源不能为空', trigger: 'blur' }],
-              fileList: [{ required: true, message: '文件不能为空', trigger: 'blur' }],
+              apiSource:[{ required: true, message: '文件来源不能为空', trigger: 'blur' }],
+              fileList: [{ required: false, message: '文件不能为空', trigger: 'blur' }],
               moduleId: [{ required: true, message: '导入模块不能为空', trigger: 'blur' }]
             },
             loading:false,
@@ -136,6 +149,7 @@ export default {
                 total: 0
             },
             treeData: [], //  存放所有module的数据: /autotest/module/list/api/的响应结果
+            switchImportMethod: 'showdoc',
             editRuleVisible: false,
             paramRuleForm: {
                 apiId: null,
@@ -179,21 +193,50 @@ export default {
         this.uploadFileForm.moduleName = data.label;
 
       },
-      submitFileForm(confirm, form){ 
+      submitFileForm(confirm, form){   //上传文件dialog中保存file中api的调用方法
+        console.log(this.$refs[confirm])
         this.$refs[confirm].validate(valid => {
           if (valid) {
+
+              let platformType;
+              if (this.uploadFileForm.apiSource === "1"){
+                platformType = "postman";
+              } else if(this.uploadFileForm.apiSource === "2"){
+                platformType = "swagger";
+              } else {
+                platformType = "showdoc";
+              }
               let url = '/autotest/import/api';
               let data = {
                 projectId: this.$store.state.projectId,
                 moduleId: form.moduleId,
-                sourceType: form.sourceType
+                apiSource: form.sourceType
               };
+            this.searchForm.module_id = this.uploadFileForm.moduleId  //更新查询module接口的参数
+            console.log("上传api的参数: " , data);
+            if(this.uploadFileForm.apiSource === "3"){
+
+              data.request_url = this.uploadFileForm.url;
+              let url = '/autotest/import/api_other';
+              this.$post(url,data,response =>{
+                this.uploadFileVisible = false; //关闭弹窗
+                console.log(response['data'])
+                this.$message.success(response['data']);
+                this.getdata(this.searchForm);
+              })
+            } else {
+              let url = '/autotest/import/api';
+              let file = form.fileList[0];
+              console.log("prepare to send");
               let file = form.fileList[0];
               this.$fileUpload(url, file, null, data, response =>{
-                  this.$message.success("上传成功");
-                  this.uploadFileVisible = false; 
-                  this.getdata(this.searchForm);
+                this.uploadFileVisible = false; //关闭弹窗
+                this.$message.success("上传成功");
+                this.getdata(this.searchForm);
               });
+            }
+
+
           }else{
               return false;
           }
@@ -366,6 +409,28 @@ export default {
           });
         }
     }
+      // 导入showdoc接口
+      submitForm(formName) {
+        console.log(this.$refs[formName])
+      },
+      // 导入showdoc接口
+      switchShowdoc(formName) {
+        this.switchImportMethod='showdoc';
+        this.rules={
+            apiSource:[{ required: true, message: '文件来源不能为空', trigger: 'blur' }],
+            fileList: [{ required: false, message: '文件不能为空', trigger: 'blur' }],
+            moduleId: [{ required: true, message: '导入模块不能为空', trigger: 'blur' }]
+        };
+      },
+      switchSwagger(formName) {
+        this.switchImportMethod='file';
+        this.rules={
+            apiSource:[{ required: true, message: '文件来源不能为空', trigger: 'blur' }],
+            fileList: [{ required: true, message: '文件不能为空', trigger: 'blur' }],
+            moduleId: [{ required: true, message: '导入模块不能为空', trigger: 'blur' }]
+        };
+
+    }
 }
 </script>
 
@@ -378,9 +443,9 @@ export default {
     padding-left: 5px;
 }
 .api-drawer-header{
-    border-bottom: 1px solid rgb(219, 219, 219); 
-    height: 60px; 
-    display: flex; 
+    border-bottom: 1px solid rgb(219, 219, 219);
+    height: 60px;
+    display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 0px 20px;
