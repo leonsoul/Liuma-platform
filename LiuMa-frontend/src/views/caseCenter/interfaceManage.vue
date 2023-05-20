@@ -13,12 +13,11 @@
             <el-button size="small" @click="reset">重置</el-button>
         </el-form-item>
         <el-form-item style="float: right">
-            <el-button size="small" type="primary" icon="el-icon-plus" @click="addApi">新增接口</el-button>
-        </el-form-item>
-          <el-form-item style="float: right">
           <el-button size="small" type="success" icon="el-icon-plus" @click="importApi">导入接口</el-button>
         </el-form-item>
-    </el-form>
+        <el-form-item style="float: right">
+            <el-button size="small" type="primary" icon="el-icon-plus" @click="addApi">新增接口</el-button>
+        </el-form-item></el-form>
     <!-- 接口模块 -->
     <el-col :span="4" class="left-tree">
         <module-tree title="接口模块" :treeData="treeData" :currentModule="searchForm.moduleId" @clickModule="clickModule($event)" @appendModule="appendModule($event)"
@@ -49,8 +48,8 @@
     <!--上传文件的弹窗-->
     <el-dialog title="上传文件" :visible.sync="uploadFileVisible" width="600px" destroy-on-close>
       <el-form label-width="120px" style="padding-right: 30px;" :model="uploadFileForm" :rules="rules" ref="uploadFileForm">
-        <el-form-item label="文件来源" prop="apiSource">
-          <el-radio-group v-model="uploadFileForm.apiSource">
+        <el-form-item label="文件来源" prop="sourceType">
+          <el-radio-group v-model="uploadFileForm.sourceType">
             <el-radio label="1" @click.native="switchSwagger">postman</el-radio>
             <el-radio label="2" @click.native="switchSwagger">swagger3</el-radio>
             <el-radio label="3" @click.native="switchShowdoc">showdoc</el-radio>
@@ -111,7 +110,7 @@ export default {
             // apiSource : "",
             uploadFileVisible: false,//控制上传api的dialog
             uploadFileForm : {//上传api信息的dict
-              apiSource: "", //导入api的来源   1:postman  2:swagger 3:showdoc
+              sourceType: "", //导入api的来源   1:postman  2:swagger 3:showdoc
               fileList: [],
               moduleId:"",   //用于import_api的dialog 中的下拉选择框
               moduleName:"", //用于import_api的dialog 中的下拉选择框
@@ -122,7 +121,7 @@ export default {
               password: ''
             },
             rules:{
-              apiSource:[{ required: true, message: '文件来源不能为空', trigger: 'blur' }],
+              sourceType:[{ required: true, message: '文件来源不能为空', trigger: 'blur' }],
               fileList: [{ required: false, message: '文件不能为空', trigger: 'blur' }],
               moduleId: [{ required: true, message: '导入模块不能为空', trigger: 'blur' }]
             },
@@ -196,25 +195,26 @@ export default {
       submitFileForm(confirm, form){   //上传文件dialog中保存file中api的调用方法
         console.log(this.$refs[confirm])
         this.$refs[confirm].validate(valid => {
+          console.log("调用上传api");
+          console.log("valid: " + valid);
           if (valid) {
 
               let platformType;
-              if (this.uploadFileForm.apiSource === "1"){
+              if (this.uploadFileForm.sourceType === "1"){
                 platformType = "postman";
-              } else if(this.uploadFileForm.apiSource === "2"){
+              } else if(this.uploadFileForm.sourceType === "2"){
                 platformType = "swagger";
               } else {
                 platformType = "showdoc";
               }
-              let url = '/autotest/import/api';
               let data = {
-                projectId: this.$store.state.projectId,
-                moduleId: form.moduleId,
-                apiSource: form.sourceType
+                project_id: this.$store.state.projectId,
+                module_id: this.uploadFileForm.moduleId,
+                platformType
               };
             this.searchForm.module_id = this.uploadFileForm.moduleId  //更新查询module接口的参数
             console.log("上传api的参数: " , data);
-            if(this.uploadFileForm.apiSource === "3"){
+            if(this.uploadFileForm.sourceType === "3"){
 
               data.request_url = this.uploadFileForm.url;
               let url = '/autotest/import/api_other';
@@ -228,7 +228,6 @@ export default {
               let url = '/autotest/import/api';
               let file = form.fileList[0];
               console.log("prepare to send");
-              let file = form.fileList[0];
               this.$fileUpload(url, file, null, data, response =>{
                 this.uploadFileVisible = false; //关闭弹窗
                 this.$message.success("上传成功");
@@ -238,17 +237,23 @@ export default {
 
 
           }else{
-              return false;
-          }
-        });
+            this.$message({
+              message: "请检查必填项是否完整!",
+              type: "error",
+              duration: 1500
+            })
+            }
+          });
       },
-        // 点击模块
-        clickModule(data){
+       // 点击模块
+       clickModule(data){
+          console.log("点击模块了");
           this.searchForm.moduleId = data.id;
             this.getdata(this.searchForm);
         },
         // 添加模块
         appendModule(data) {
+          console.log("添加模块了");
           if (data){
                 this.moduleForm.parentId = data.id;
                 this.moduleForm.parentName = data.label;
@@ -407,29 +412,28 @@ export default {
               this.$message.success("生成成功 前往用例管理页查看");
               this.editRuleVisible = false;
           });
-        }
-    }
+        },
       // 导入showdoc接口
-      submitForm(formName) {
-        console.log(this.$refs[formName])
-      },
-      // 导入showdoc接口
-      switchShowdoc(formName) {
-        this.switchImportMethod='showdoc';
-        this.rules={
-            apiSource:[{ required: true, message: '文件来源不能为空', trigger: 'blur' }],
-            fileList: [{ required: false, message: '文件不能为空', trigger: 'blur' }],
-            moduleId: [{ required: true, message: '导入模块不能为空', trigger: 'blur' }]
-        };
-      },
-      switchSwagger(formName) {
-        this.switchImportMethod='file';
-        this.rules={
-            apiSource:[{ required: true, message: '文件来源不能为空', trigger: 'blur' }],
-            fileList: [{ required: true, message: '文件不能为空', trigger: 'blur' }],
-            moduleId: [{ required: true, message: '导入模块不能为空', trigger: 'blur' }]
-        };
-
+        submitForm(formName) {
+              console.log(this.$refs[formName])
+        },
+          // 导入showdoc接口
+        switchShowdoc(formName) {
+          this.switchImportMethod='showdoc';
+          this.rules={
+              apiSource:[{ required: true, message: '文件来源不能为空', trigger: 'blur' }],
+              fileList: [{ required: false, message: '文件不能为空', trigger: 'blur' }],
+              moduleId: [{ required: true, message: '导入模块不能为空', trigger: 'blur' }]
+          };
+        },
+        switchSwagger(formName) {
+          this.switchImportMethod='file';
+          this.rules={
+              apiSource:[{ required: true, message: '文件来源不能为空', trigger: 'blur' }],
+              fileList: [{ required: true, message: '文件不能为空', trigger: 'blur' }],
+              moduleId: [{ required: true, message: '导入模块不能为空', trigger: 'blur' }]
+          };
+        },
     }
 }
 </script>

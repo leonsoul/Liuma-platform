@@ -77,7 +77,7 @@ public class RunService {
             runRequest.setSourceId(debugData.getId());
         }
         // 新增任务，将任务存入数据库中。设置任务id，名称，状态，类型，引擎，项目id，任务执行者，任务更新者，创建时间，更新时间，
-        Task task = new Task();
+        task = new Task();
         task.setId(UUID.randomUUID().toString());
         String runName = runRequest.getSourceName() +"-"+ new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
         task.setName(runName);

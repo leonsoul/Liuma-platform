@@ -36,9 +36,6 @@ public class OpenApiService {
     @Value("${mail.sender.on-off}")
     private String MAIL_ON_OFF;
 
-    @Value("${spring.mail.username}")
-    private String MAIL_SENDER;
-
 
     @Value("${cloud.storage.on-off}")
     private String cloudStorage;  // 云存储开关
@@ -97,8 +94,8 @@ public class OpenApiService {
     @Resource
     private ReportService reportService;
 
-    @Resource
-    private SendMailService sendMailService;
+//    @Resource
+//    private SendMailService sendMailService;
 
     public String applyEngineToken(EngineRequest request) {
         Engine engine = engineMapper.getEngineById(request.getEngineCode());
@@ -150,7 +147,9 @@ public class OpenApiService {
         }
         // 获取本任务需要测试的用例列表
         List<TaskTestCollectionResponse> testCollectionList = caseJsonCreateService.getTaskTestCollectionList(task);
-        if(testCollectionList.size()==0) return null;
+        if(testCollectionList.size()==0) {
+            return null;
+        }
         try {
             // 组装测试数据 调试数据放在debugData中 计划或者集合数据生成json.zip 下载地址放在download中
             if (task.getSourceType().equals(ReportSourceType.TEMP.toString()) || task.getSourceType().equals(ReportSourceType.CASE.toString())) {
@@ -239,7 +238,7 @@ public class OpenApiService {
                         String title = "测试任务执行完成通知";
                         String content = user.getUsername() + ", 您好!<br><br>您执行的任务: \""
                                 + task.getName() + "\" 已执行完毕，请登录平台查看结果。<br><br>谢谢！";
-                        sendMailService.sendReportMail(MAIL_SENDER, user.getEmail(), title, content);
+//                        sendMailService.sendReportMail(MAIL_SENDER, user.getEmail(), title, content);
                     }
                 }catch (Exception ignored){
                 }
@@ -255,7 +254,10 @@ public class OpenApiService {
                 if(notification.getStatus().equals(NotificationStatus.DISABLE.toString())){
                     return; // 通知禁用不通知
                 }
-                notificationService.sendNotification(notification, task);   // 发送通知
+                try {
+                    notificationService.sendNotification(notification, task);   // 发送通知
+                }catch (Exception ignored){
+                }
             }
         }else {
             Report report = reportMapper.getReportDetail(task.getReportId());

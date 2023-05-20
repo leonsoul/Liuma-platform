@@ -20,7 +20,7 @@ public class DeviceController {
     private DeviceService deviceService;
 
     @GetMapping("/filter/{projectId}")
-    public HashMap<String, List<String>> getDeviceFilter(@PathVariable String projectId, HttpServletRequest request) {
+    public HashMap<String, List<String>> getDeviceFilter(@PathVariable String projectId, @org.jetbrains.annotations.NotNull HttpServletRequest request) {
         String user = request.getSession().getAttribute("userId").toString();
         return deviceService.getDeviceFilter(user, projectId);
     }

@@ -1,6 +1,7 @@
 package com.autotest.LiuMa.controller;
 
 
+import com.autotest.LiuMa.request.ApiImportRequest;
 import com.autotest.LiuMa.service.ApiImportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,10 +18,8 @@ import java.util.*;
 public class ApiImportController {
     @Resource
     public ApiImportService apiImportService;
-
     @Value("${python.script.path}")
     private String scriptDirPath;
-
 
     @PostMapping(value="/api", consumes = {"multipart/form-data"})
     public void importApi( @RequestParam MultipartFile file, @RequestParam String
@@ -28,17 +27,19 @@ public class ApiImportController {
         String userId = request.getSession().getAttribute("userId").toString();
         apiImportService.importApi(file, sourceType, projectId, moduleId, userId);
     }
+
+
     @PostMapping("/api_other")
     public String uploadImportHandler(@RequestBody ApiImportRequest apiImportRequest, HttpServletRequest request) {
         String userId = request.getSession().getAttribute("userId").toString();
         String projectId = apiImportRequest.getProject_id();
-        String module_id = apiImportRequest.getModule_id();
-        String request_url = apiImportRequest.getRequest_url();
+        String moduleId = apiImportRequest.getModule_id();
+        String requestUrl = apiImportRequest.getRequest_url();
 
         StringBuilder stringBuilder ;
         try {
             String pythonScript = scriptDirPath + "demo.py";
-            String[] command = {"python3", pythonScript, "-p",projectId,"-m", module_id,"-ru", request_url, "-u", userId};
+            String[] command = {"python3", pythonScript, "-p",projectId,"-m", moduleId,"-ru", requestUrl, "-u", userId};
             ProcessBuilder processBuilder = new ProcessBuilder(command);
             System.out.println(Arrays.toString(command));
             Process process = processBuilder.start();
