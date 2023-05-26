@@ -18,57 +18,28 @@ import java.util.*;
 public class ApiImportController {
     @Resource
     public ApiImportService apiImportService;
-
     @Value("${python.script.path}")
     private String scriptDirPath;
 
-    @PostMapping("/api")
-    public String uploadHandler( @RequestParam MultipartFile file, @RequestParam String platformType, @RequestParam String project_id, @RequestParam String module_id, HttpServletRequest request) {
+    @PostMapping(value="/api", consumes = {"multipart/form-data"})
+    public void importApi( @RequestParam MultipartFile file, @RequestParam String
+            sourceType, @RequestParam String projectId, @RequestParam String moduleId, HttpServletRequest request) {
         String userId = request.getSession().getAttribute("userId").toString();
-        Map<String, String> assistMap = new HashMap<>();
-        assistMap.put("userId", userId);
-        assistMap.put("projectId", project_id);
-        assistMap.put("moduleId", module_id);
-
-        StringBuilder stringBuilder ;
-        try {
-            if (file!=null) {
-                InputStream bb = file.getInputStream();
-                InputStreamReader streamReader = new InputStreamReader(bb);
-                BufferedReader reader = new BufferedReader(streamReader);
-                String line;
-                stringBuilder = new StringBuilder();
-                while ((line = reader.readLine()) != null) {
-                    stringBuilder.append(line);
-                }
-                reader.close();
-                bb.close();
-                System.out.println(stringBuilder);
-                if (apiImportService.verifyApi(stringBuilder.toString(), platformType)){
-                    return apiImportService.saveImportApi(stringBuilder.toString(), platformType, assistMap) + "";
-                }
-                else{
-                    return "import api error";
-                }
-            } else {
-                return "need upload file";
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return "unknown error";
+        apiImportService.importApi(file, sourceType, projectId, moduleId, userId);
     }
+
+
     @PostMapping("/api_other")
     public String uploadImportHandler(@RequestBody ApiImportRequest apiImportRequest, HttpServletRequest request) {
         String userId = request.getSession().getAttribute("userId").toString();
         String projectId = apiImportRequest.getProject_id();
-        String module_id = apiImportRequest.getModule_id();
-        String request_url = apiImportRequest.getRequest_url();
+        String moduleId = apiImportRequest.getModule_id();
+        String requestUrl = apiImportRequest.getRequest_url();
 
         StringBuilder stringBuilder ;
         try {
             String pythonScript = scriptDirPath + "demo.py";
-            String[] command = {"python3", pythonScript, "-p",projectId,"-m", module_id,"-ru", request_url, "-u", userId};
+            String[] command = {"python3", pythonScript, "-p",projectId,"-m", moduleId,"-ru", requestUrl, "-u", userId};
             ProcessBuilder processBuilder = new ProcessBuilder(command);
             System.out.println(Arrays.toString(command));
             Process process = processBuilder.start();

@@ -76,6 +76,20 @@ public class CollectionService {
             }
         }
 
+        if(collectionDTO.getId().equals("") || collectionDTO.getId() == null){ // 新增集合
+            collectionDTO.setId(UUID.randomUUID().toString());
+            collectionDTO.setCreateTime(System.currentTimeMillis());
+            collectionDTO.setUpdateTime(System.currentTimeMillis());
+            collectionDTO.setCreateUser(collectionDTO.getUpdateUser());
+            collectionMapper.addCollection(collectionDTO);
+        }else{ // 修改集合
+            collectionDTO.setUpdateTime(System.currentTimeMillis());
+            collectionMapper.updateCollection(collectionDTO);
+        }
+
+        collectionCases.forEach(item -> {
+            item.setCollectionId(collectionDTO.getId());
+        });
 
         collectionCaseMapper.deleteCollectionCase(collectionDTO.getId());  //先删除全部集合用例
         if(collectionCases.size() > 0) {

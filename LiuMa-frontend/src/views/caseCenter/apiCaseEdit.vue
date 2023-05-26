@@ -24,7 +24,11 @@
         </el-table-column>
         <el-table-column label="步骤描述" min-width="200px">
             <template v-slot="scope">
-                <el-input size="mini" style="width: 90%" v-model="scope.row.description" placeholder="请输入步骤描述"/>
+                <div v-if="scope.row.edit==true" >
+                  <el-input size="mini" style="width: 85%" v-model="scope.row.description" placeholder="请输入步骤描述" @change="scope.row.edit=false"/>
+                  <i class="el-icon-success" @click="scope.row.edit=false"/>
+                </div>
+                <span v-else>{{scope.row.description}} <i class="el-icon-edit"  @click="scope.row.edit=true"/></span>
             </template>
         </el-table-column>
         <el-table-column label="操作" width="200px">

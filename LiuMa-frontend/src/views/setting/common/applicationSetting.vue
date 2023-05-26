@@ -18,7 +18,11 @@
     <el-table size="small" :data="applicationData" v-loading="loading">
         <el-table-column prop="index" label="序号" align="center" width="50px"/>
         <el-table-column prop="name" label="应用名称"/>
-        <el-table-column prop="system" label="所属系统"/>
+        <el-table-column prop="system" label="所属系统">
+          <template slot-scope="scope">
+            {{scope.row.system==='ANDROID'? "安卓": "苹果"}}
+          </template>
+        </el-table-column>
         <el-table-column prop="appId" label="应用ID"/>
         <el-table-column prop="mainActivity" label="应用主页"/>
         <el-table-column prop="description" label="应用说明" min-width="180px"/>
@@ -178,7 +182,7 @@ export default {
         this.applicationVisible = true;
       },
       deleteApplication(row){
-        let text = "迭代应用删除后 集合和计划无法标识所属应用 确定要删除迭代应用吗";
+        let text = "应用删除后 APP用例无法使用该应用 影响用例执行 确定要删除应用吗";
         let url = "/autotest/application/delete";
         this.$confirm(text, '删除提示', {
             confirmButtonText: '确定',

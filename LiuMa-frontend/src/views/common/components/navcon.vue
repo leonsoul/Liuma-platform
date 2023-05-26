@@ -27,10 +27,6 @@
         </el-dropdown-menu>
       </template>
     </el-dropdown>
-    <!-- 使用手册 -->
-<!--    <el-button size="small" class="align-right" type="text" style="margin-right: 15px" @click="openHelp">-->
-<!--      <i class="el-icon-question" style="color: #606266"> 使用手册</i>-->
-<!--    </el-button>-->
     <!-- 配置中心 -->
     <el-button size="small" class="align-right" type="text" style="margin-right: 15px" @click="openSetting">
       <i class="el-icon-s-tools" style="color: #606266"> 配置中心</i>
@@ -113,12 +109,9 @@ export default {
         case "personal":
           this.$router.push({path: '/setting/userSetting'});
           break;
-        // case "system":
-        //   this.$router.push({path: '/setting/systemSetting'})
-        //   break;
-        // case "help":
-        //   window.open("https://docs.qq.com/doc/p/1e36932d41b40df896c1627a004068df9a28fc3f?dver=3.0.27474319");
-        //   break;
+        case "help":
+          window.open("https://docs.qq.com/doc/p/1e36932d41b40df896c1627a004068df9a28fc3f");
+          break;
         case "follow":
           this.showQR = true;
           break;

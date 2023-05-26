@@ -98,14 +98,21 @@
             </el-col>
         </el-row>
         <el-row :gutter="40" v-if="caseForm.type === 'WEB'">
-            <el-col :span="12">
+            <el-col :span="6">
                 <el-form-item label="启动Driver">
-                    <el-switch size="small" v-model="caseForm.commonParam.startDriver" active-text="用例开始前重启浏览器"/>
+                    <el-switch size="small" v-model="caseForm.commonParam.startDriver" active-text="开始前重启浏览器"/>
+                </el-form-item>
+            </el-col>
+            <el-col :span="6">
+                <el-form-item label="关闭Driver">
+                    <el-switch size="small" v-model="caseForm.commonParam.closeDriver" active-text="结束后关闭浏览器"/>
                 </el-form-item>
             </el-col>
             <el-col :span="12">
-                <el-form-item label="关闭Driver">
-                    <el-switch size="small" v-model="caseForm.commonParam.closeDriver" active-text="用例结束后关闭浏览器"/>
+                <el-form-item label="Driver参数">
+                    <el-select size="small" style="width: 100%" v-model="caseForm.commonParam.driverSetting" placeholder="driver配置">
+                        <el-option v-for="item in drivers" :key="item.id" :label="item.name" :value="item.id"/>
+                    </el-select>
                 </el-form-item>
             </el-col>
         </el-row>
@@ -137,7 +144,9 @@ export default {
     caseForm: Object,
     applications: {
         type: Array,
-        default: []
+        default:  () => {
+	        return [];
+	    },
     }
   },
   data() {
@@ -155,6 +164,9 @@ export default {
     },
     created() {
         this.getModule();
+        if(this.caseForm.type === "WEB"){
+            this.getDrivers();
+        }
         if(this.caseForm.type !== "APP"){
             this.getEnvironment();
         }
@@ -169,6 +181,12 @@ export default {
         }
     },
     methods: {
+        getDrivers(){
+            let url = '/autotest/driver/list/' + this.$store.state.projectId;
+            this.$get(url, response =>{
+                this.drivers = response.data;
+            });
+        },
         getFunction(){
             let url = '/autotest/function/custom/list/' + this.$store.state.projectId;
             this.$get(url, response =>{

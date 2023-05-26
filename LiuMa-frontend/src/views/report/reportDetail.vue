@@ -54,16 +54,16 @@
                                         <span v-if="scope.row.status==='error'" class="lm-error"><i class="el-icon-error"/> 错误</span>
                                     </template>
                                 </el-table-column>
-                                <el-table-column label="事务名称" prop="transName" min-width="150px"/>
-                                <el-table-column label="事务内容" prop="content" min-width="200px"/>
-                                <el-table-column label="事务描述" prop="description" min-width="200px"/>
+                                <el-table-column :label="caseData.row.caseType ==='API'?'接口名称':'操作名称'" prop="transName" min-width="150px"/>
+                                <el-table-column :label="caseData.row.caseType ==='API'?'接口地址':'操作元素'" prop="content" min-width="200px"/>
+                                <el-table-column label="步骤描述" prop="description" min-width="200px"/>
                                 <el-table-column label="执行日志" prop="execLog" width="120px">
                                     <template slot-scope="scope">
                                         <el-button size="small" type="text" @click="viewLog(scope.row.execLog)">查看日志123</el-button>
                                     </template>
                                 </el-table-column>
                                 <el-table-column label="响应时长" prop="during" v-if="caseData.row.caseType ==='API'" width="120px"/>
-                                <el-table-column label="执行截图" prop="screenshotList" v-if="caseData.row.caseType ==='WEB'" width="120px">
+                                <el-table-column label="执行截图" prop="screenshotList" v-else width="120px">
                                     <template slot-scope="scope">
                                         <el-button v-if="scope.row.screenshotList.length !== 0" size="small" type="text" @click="scope.row.showViewer=true">查看</el-button>
                                         <el-image-viewer v-if="scope.row.showViewer" :on-close="()=>{scope.row.showViewer=false}" :url-list="scope.row.screenshotList"/>
@@ -169,13 +169,13 @@ export default {
                         let collectionCase = collection.caseList[j];
                         collectionCase.startTime = timestampToTime(collectionCase.startTime);
                         collectionCase.endTime = timestampToTime(collectionCase.endTime);
-                        if(collectionCase.caseType === 'WEB'){
-                        for(let k=0;k<collectionCase.transList.length;k++){
-                            let trans = collectionCase.transList[k];
-                            trans.screenshotList = JSON.parse(trans.screenshotList);
-                            trans.showViewer = false;
+                        if(collectionCase.caseType !== 'API'){
+                            for(let k=0;k<collectionCase.transList.length;k++){
+                                let trans = collectionCase.transList[k];
+                                trans.screenshotList = JSON.parse(trans.screenshotList);
+                                trans.showViewer = false;
+                            }
                         }
-                    }
                     }
                 }
                 this.report = report;
@@ -184,14 +184,25 @@ export default {
         },
         viewCase(row){
             if (row.caseType == "API"){
-              this.$router.push({path: '/caseCenter/caseManage/apiCase/edit/' + row.caseId})
+              this.$router.push({path: '/caseCenter/caseManage/apiCase/edit/' + row.caseId});
             }else if (row.caseType == "WEB"){
-              this.$router.push({path: '/caseCenter/caseManage/webCase/edit/' + row.caseId})
+              this.$router.push({path: '/caseCenter/caseManage/webCase/edit/' + row.caseId});
             }else{
-              this.$router.push({path: '/caseCenter/caseManage/appCase/edit/' + row.caseId})
+                this.$get("/autotest/case/system/" + row.caseId, response =>{
+                    let system = response.data;
+                    this.$router.push({path: '/caseCenter/caseManage/appCase/'+ system +'/edit/' + row.caseId});
+                });
             }
         },
         viewLog(log){
+            let req = log.substring(log.indexOf("<span>请求体: ")+11, log.indexOf("</span><br>"));
+            if(req){
+                log = log.replace(req, req.replaceAll("<", "&lt;").replaceAll(">", "&gt;"));
+            }
+            let res = log.substring(log.indexOf("<br><b>响应体: ")+12, log.indexOf("</b><br><br>"));
+            if(res){
+                log = log.replace(res, res.replaceAll("<", "&lt;").replaceAll(">", "&gt;"));
+            }
             this.log = log;
             this.logVisable = true;
         },

@@ -36,7 +36,6 @@ public class CaseRequest {
     private JSONObject commonParam; // 配置信息 包含 导入函数【函数uuid】，导入公参，公用Header，公用Proxy
     private String system;
 
-
     private Long createTime;//创建时间
 
     private Long updateTime; //更新时间

@@ -149,7 +149,7 @@ export default {
     },
     methods: {
         getDetail(param){
-            if (param.operationId){
+            if (param.operationId){ 
                 this.isAdd = false;
                 this.systems.push({id: "common", name: "通用"});
                 let url = '/autotest/operation/detail/' + param.uiType + '/' + param.operationId;
@@ -218,6 +218,40 @@ export default {
         deleteAllElement(){
             this.operationForm.element.splice(0, this.operationForm.element.length);
         },
+        getDisabled(field, paramName){
+            switch(this.operationForm.type) {
+                case 'assertion':
+                    if(field !== 'type'){
+                        if(paramName === "assertion" | paramName === "expect" | paramName === "continue"){
+                            return true;
+                        }else{
+                            return false;
+                        }
+                    }else{
+                        if(paramName === "assertion" | paramName === "continue"){
+                            return true;
+                        }else{
+                            return false;
+                        }
+                    }
+                case 'relation':
+                    if(paramName === 'save_name'){
+                        return true;
+                    }else{
+                        return false;
+                    }
+                case 'condition':
+                    if(paramName === 'true' | paramName === 'false'){
+                        return true;
+                    }else{
+                        return false;
+                    }
+                case 'looper':
+                    return true;
+                default:
+                    return false;
+            }
+        }
     }
 
 }

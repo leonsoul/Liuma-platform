@@ -1,6 +1,5 @@
 package com.autotest.LiuMa.service;
 
-import com.autotest.LiuMa.common.exception.DuplicateContentException;
 import com.autotest.LiuMa.database.domain.Control;
 import com.autotest.LiuMa.database.mapper.ControlMapper;
 import com.autotest.LiuMa.dto.ControlDTO;
@@ -20,11 +19,7 @@ public class ControlService {
     private ControlMapper controlMapper;
 
     public void saveControl(Control control) {
-        Control old = controlMapper.getControlByName(control.getModuleId(), control.getName(), control.getSystem());
         if(control.getId().equals("") || control.getId() == null){ // 新增控件
-            if (old != null){
-                throw new DuplicateContentException("同页面下控件重名");
-            }
             control.setId(UUID.randomUUID().toString());
             control.setCreateTime(System.currentTimeMillis());
             control.setUpdateTime(System.currentTimeMillis());
@@ -32,9 +27,6 @@ public class ControlService {
             control.setStatus("Normal");
             controlMapper.addControl(control);
         }else{ // 修改控件
-            if (old != null && !old.getId().equals(control.getId())){
-                throw new DuplicateContentException("同页面下控件重名");
-            }
             control.setUpdateTime(System.currentTimeMillis());
             controlMapper.updateControl(control);
         }

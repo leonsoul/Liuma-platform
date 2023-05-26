@@ -26,9 +26,8 @@ public class Case implements Serializable {
 
     private String environmentIds; // 环境列表 列表形式 uuid
 
-    private String system;
-
     private String commonParam; // 配置信息 包含 导入函数【函数uuid】，导入公参，公用Header，公用Proxy
+    private String system;
 
     private Long createTime;//创建时间
 

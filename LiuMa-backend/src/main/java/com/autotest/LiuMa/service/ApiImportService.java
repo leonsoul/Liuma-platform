@@ -1,22 +1,24 @@
 package com.autotest.LiuMa.service;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.autotest.LiuMa.common.exception.LMException;
 import com.autotest.LiuMa.database.domain.Api;
-import com.autotest.LiuMa.dto.JsonSchemaItemDTO;
 import com.autotest.LiuMa.database.mapper.ApiMapper;
 import io.swagger.parser.OpenAPIParser;
 import io.swagger.v3.oas.models.*;
 import io.swagger.v3.oas.models.media.*;
-import io.swagger.v3.oas.models.parameters.Parameter;
-import io.swagger.v3.oas.models.parameters.QueryParameter;
+import io.swagger.v3.oas.models.parameters.*;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.*;
 
 @Service
@@ -26,637 +28,405 @@ public class ApiImportService {
 
     private Components components;
 
-    // api file is valid ?
-    public boolean verifyApi(String data, String platformType) {
-        JSONObject jsonObject = JSON.parseObject(data);
-        if (platformType.equals("postman")) {
-            Object info = jsonObject.get("info");
+    public void importApi(MultipartFile file,String sourceType, String projectId, String moduleId, String userId){
+        try {
+            StringBuilder stringBuilder ;
+            InputStream bb = file.getInputStream();
+            InputStreamReader streamReader = new InputStreamReader(bb);
+            BufferedReader reader = new BufferedReader(streamReader);
+            String line;
+            stringBuilder = new StringBuilder();
+            while ((line = reader.readLine()) != null) {
+                stringBuilder.append(line);
+            }
+            reader.close();
+            bb.close();
+            if (this.verifyApi(stringBuilder.toString(), sourceType)){
+                if(sourceType.equals("postman")){
+                    this.savePostmanApi(stringBuilder.toString(), projectId, moduleId, userId);
+                }else if(sourceType.equals("swagger")){
+                    this.saveSwaggerApi(stringBuilder.toString(), projectId, moduleId, userId);
+                }
+            }else{
+                throw new LMException("格式校验错误 请检查文件");
+            }
+        } catch (Exception e) {
+            throw new LMException("接口导入失败"+ e.getMessage());
+        }
+    }
+
+    private boolean verifyApi(String data, String sourceType) {
+        JSONObject json = JSONObject.parseObject(data);
+        if (sourceType.equals("postman")) {
+            JSONObject info = json.getJSONObject("info");
             if (info == null) {
-                System.out.println("postman_file missing info");
                 return false;
             } else {
-                JSONObject jsonObject1 = JSON.parseObject(info.toString());
-                if (jsonObject1.get("_postman_id") == null) {
-                    System.out.println("postman_file missing postman_id");
-                    return false;
-                }
+                return info.getString("_postman_id") != null;
             }
-            return true;
-        } else {
+        } else if(sourceType.equals("swagger")){
             //swagger3格式文件的基本校验
-            return jsonObject.get("openapi") != null && jsonObject.get("servers") != null && jsonObject.get("paths") != null && jsonObject.get("components") != null;
+            return json.get("openapi") != null && json.get("servers") != null && json.get("paths") != null && json.get("components") != null;
         }
+        return false;
     }
 
-    //处理api组成的List, 依次提取api的信息, 然后存数据库; 主方法是Map存储的信息, 这里提取出来具体的参数
-    private void handleApiList(List<JSONObject> apiInfoList, String platformType, String projectId, String moduleId, String userId){
-        if (platformType.equals("postman")){
-            for (JSONObject jsonObject: apiInfoList){
-                Api postmanApi = new Api();
-                Map apiInfoMap = JSONObject.parseObject(jsonObject.toJSONString());
-                Map requestMap = (Map) apiInfoMap.get("request");
-                Map urlMap = (Map) requestMap.get("url");
-                List apiPathList = (List) urlMap.get("path");
-                String apiPath = String.format("/%s", String.join("/", apiPathList));
-                List headerList = (List) requestMap.get("header");
-                System.out.println("apiHeader: " + headerList);
-
-                //组装header的存储数据
-                ArrayList headerSaveList = new ArrayList();
-                for (Object tmpHeaderList : headerList) {
-                    HashMap headerMap = new HashMap(); //final save map
-                    Map headerTmpMap = JSON.parseObject(tmpHeaderList + "", Map.class);
-                    headerMap.put("name", headerTmpMap.get("key") + "");
-                    headerMap.put("value", headerTmpMap.get("value") + "");
-                    JSONObject headerJsonObject = new JSONObject(headerMap);
-
-                    headerSaveList.add(JSON.toJSONString(headerJsonObject));
-                }
-
-                //query参数的提取 + 组装
-                JSONArray querySaveArray = new JSONArray(); //final save Array
-                List<Map<String, String>> queryList = (List) urlMap.get("query");  //postman api query param
-                if (queryList != null) {
-                    for (Map<String, String> queryJsonMap : queryList
-                    ) {
-                        JSONObject tmpQueryObject = new JSONObject();
-                        tmpQueryObject.put("name", queryJsonMap.get("key"));
-                        tmpQueryObject.put("value", queryJsonMap.get("value"));
-                        tmpQueryObject.put("required", true);
-                        querySaveArray.add(tmpQueryObject);
-                    }
-                }
-                //body的提取 + 组装数据 逻辑
-                Map bodyMap = (Map) requestMap.get("body");
-                JSONObject bodySaveObject = new JSONObject();  //final save body data
-                if (bodyMap != null) {
-                    JSONArray tmpEmptyArray = new JSONArray();
-                    if (bodyMap.get("options") != null && bodyMap.get("mode").equals("raw")) {  //json格式
-                        bodySaveObject.put("raw", "");
-                        bodySaveObject.put("file", tmpEmptyArray);
-                        bodySaveObject.put("form", tmpEmptyArray);
-                        bodySaveObject.put("json", bodyMap.get("raw"));
-                        bodySaveObject.put("type", "json");
-                    } else if (bodyMap.get("mode").equals("raw")) {    //text格式
-                        bodySaveObject.put("raw", bodyMap.get("raw"));
-                        bodySaveObject.put("file", tmpEmptyArray);
-                        bodySaveObject.put("form", tmpEmptyArray);
-                        bodySaveObject.put("json", "");
-                        bodySaveObject.put("type", "raw");
-                    } else if (bodyMap.get("mode").equals("formdata")) {  //formdata格式
-                        JSONArray tmpDataArray = new JSONArray(); // use for form behind
-                        List<Map<String, String>> postmanFormList = (List) bodyMap.get("formdata");
-                        for (Map<String, String> tmpPostmanFormList : postmanFormList) {
-                            tmpDataArray.add(packageData(tmpPostmanFormList.get("key"), tmpPostmanFormList.get("type"), tmpPostmanFormList.get("value")));
-                        }
-
-                        bodySaveObject.put("raw", "");
-                        bodySaveObject.put("file", tmpEmptyArray);
-                        bodySaveObject.put("form", tmpDataArray);//todo
-                        bodySaveObject.put("json", "");
-                        bodySaveObject.put("type", "form-data");
-                    } else if (bodyMap.get("mode").equals("urlencoded")) {  //urlencoded格式
-                        JSONArray tmpDataArray = new JSONArray(); // use for form behind
-                        List<Map<String, String>> postmanFormList = (List) bodyMap.get("urlencoded");
-                        for (Map<String, String> aPostmanFormList : postmanFormList) {
-                            tmpDataArray.add(packageData(aPostmanFormList.get("key"), aPostmanFormList.get("type"), aPostmanFormList.get("value")));
-                        }
-                        bodySaveObject.put("raw", "");
-                        bodySaveObject.put("file", tmpEmptyArray);
-                        bodySaveObject.put("form", tmpDataArray);//todo
-                        bodySaveObject.put("json", "");
-                        bodySaveObject.put("type", "form-urlencoded");
-                    } else {  //其它未知格式
-                        System.out.println("import api mode: " + bodyMap.get("mode"));
-                    }
-                }
-
-                postmanApi.setId(UUID.randomUUID() + "");
-                postmanApi.setName(((JSONObject) apiInfoMap).getString("name"));
-                postmanApi.setLevel("P0");
-                postmanApi.setModuleId(moduleId);
-                postmanApi.setProjectId(projectId);
-                postmanApi.setHeader(headerSaveList + "");
-                postmanApi.setBody(bodySaveObject + "");
-                postmanApi.setQuery(querySaveArray + "");
-//                postmanApi.setRest("tmp rest"); //postman暂不涉及rest参数的存储
-                postmanApi.setMethod(requestMap.get("method") + "");
-                postmanApi.setPath(apiPath);
-                postmanApi.setProtocol((urlMap.get("protocol") + "").toUpperCase());
-                postmanApi.setDomainSign("");
-                postmanApi.setDescription("postman_api");
-
-                postmanApi.setCreateTime(System.currentTimeMillis());
-                postmanApi.setUpdateTime(System.currentTimeMillis());
-                postmanApi.setUpdateUser(userId);
-                postmanApi.setCreateUser(userId);
-                postmanApi.setStatus("Normal");
-
-                apiMapper.addApi(postmanApi);
-                System.out.println("Postman入库的api对象: " + postmanApi);
-                System.out.println("postman api save succ");
+    private void getAllPostmanApi(LinkedList<JSONObject> apiInfoList, List<Object> apiList){
+        for (Object anApiList : apiList) {  // 递归获取postman接口
+            JSONObject json = JSONObject.parseObject(anApiList.toString());
+            if (json.getJSONArray("item") != null){
+                this.getAllPostmanApi(apiInfoList, json.getJSONArray("item"));
+            }else {
+                apiInfoList.add(json);
             }
-        }else { //swagger
-
         }
     }
 
-    //postman or swagger
-    public boolean saveImportApi(String data, String platformType, Map<String, String> apiMap){
-        if (platformType.equals("postman")) {
-            JSONObject requestJsonObject = JSON.parseObject(data);
-            LinkedList<JSONObject> fileApiList = new LinkedList<>();  //存放每个api信息的列表
-            List apiList = requestJsonObject.getJSONArray("item");
-            for (Object anApiList : apiList) {
-                JSONObject jsonObject = JSONObject.parseObject(anApiList + "");
-
-                //处理含有文件夹的情况(目前仅支持单层文件夹)
-                if (jsonObject.getJSONArray("item") != null){
-                    for (int k = 0; k < jsonObject.getJSONArray("item").size(); k++) {
-                        fileApiList.add((JSONObject)jsonObject.getJSONArray("item").get(k));
-                    }
+    private void savePostmanApi(String data, String projectId, String moduleId, String userId){
+        JSONObject requestJsonObject = JSONObject.parseObject(data);
+        LinkedList<JSONObject> apiInfoList = new LinkedList<>();  //存放每个api信息的列表
+        this.getAllPostmanApi(apiInfoList, requestJsonObject.getJSONArray("item"));
+        for (JSONObject apiInfo: apiInfoList){
+            JSONObject request =  apiInfo.getJSONObject("request");
+            if(!request.containsKey("url")) continue;
+            JSONObject url =  new JSONObject();
+            String path;
+            if(request.get("url") instanceof String){
+                try {
+                    URL u = new URL(request.getString("url"));
+                    path = u.getPath();
+                }catch (Exception e){
                     continue;
                 }
-
-                fileApiList.add(jsonObject);
+            }else {
+                url = request.getJSONObject("url");
+                List<String> apiPathList = url.getJSONArray("path").toJavaList(String.class);
+                path = String.format("/%s", String.join("/", apiPathList));
             }
-            //调用处理apiInfo列表的方法
-            handleApiList(fileApiList, platformType, apiMap.get("projectId"), apiMap.get("moduleId"), apiMap.get("userId"));
-            return true;
-        } else if (platformType.equals("swagger")){
-            //todo 解析swagger3逻辑
-            SwaggerParseResult result = new OpenAPIParser().readContents(data,null,null);
-            //获取方法swagger对象
-            OpenAPI openAPI = result.getOpenAPI();
-            //获取方法对象集合
-            Paths paths = openAPI.getPaths();
-            // 获取所以方法路径
-            Set<String> pathNames = paths.keySet();
-            // 获取实体类对象集合
-            this.components = openAPI.getComponents();
-            for (String pathName : pathNames) {
-                Api swaggerApi = new Api();
-                PathItem pathItem = paths.get(pathName);
-                swaggerApi.setId(UUID.randomUUID() + "");
-
-                swaggerApi.setLevel("P0");
-                swaggerApi.setModuleId(apiMap.get("moduleId"));
-                swaggerApi.setProjectId(apiMap.get("projectId"));
-                JSONObject bodySaveObject = new JSONObject();  //保存body参数
-                JSONArray tmpDataArray = new JSONArray(); // /保存form参数
-                Map<String,Object> tmpJsonDateObject = new HashMap<>();  //保存json参数
-                JSONArray tmpRawDataArray = new JSONArray();  //保存raw参数
-
-//              swaggerApi.setHeader("");   //一般不涉及header数据的提取
-                if (pathItem.getPost() != null){
-                    Operation operation = pathItem.getPost();
-                    swaggerApi.setName(pathItem.getPost().getSummary() + "");
-                    //解析api请求对象body
-                    parseRequestBody(operation, tmpJsonDateObject,tmpDataArray,tmpRawDataArray);
-                    JSONArray tmpEmptyArray = new JSONArray();
-                    if (!tmpDataArray.isEmpty()){
-                        bodySaveObject.put("raw", "");
-                        bodySaveObject.put("file", tmpEmptyArray);
-                        bodySaveObject.put("form", tmpDataArray);//todo
-                        bodySaveObject.put("json", "");
-                        bodySaveObject.put("type", "form-data");
-
-                    } else if (!tmpJsonDateObject.isEmpty()) {
-                        bodySaveObject.put("raw", "");
-                        bodySaveObject.put("file", tmpEmptyArray);
-                        bodySaveObject.put("form", tmpEmptyArray);
-                        bodySaveObject.put("json", JSONObject.toJSONString(tmpJsonDateObject));
-                        bodySaveObject.put("type", "json");
-
-                    } else if (!tmpRawDataArray.isEmpty()) {
-                        bodySaveObject.put("raw", tmpRawDataArray);
-                        bodySaveObject.put("file", tmpEmptyArray);
-                        bodySaveObject.put("form", tmpEmptyArray);
-                        bodySaveObject.put("json", "");
-                        bodySaveObject.put("type", "raw");
-
+            //组装header
+            JSONArray header = new JSONArray();
+            if(request.containsKey("header")) {
+                List<JSONObject> headerData = request.getJSONArray("header").toJavaList(JSONObject.class);
+                for (JSONObject headerParam: headerData) {
+                    JSONObject tmpHeaderParam = this.getHeaderParam(headerParam.getString("key"), headerParam.getString("value"));
+                    header.add(tmpHeaderParam);
+                }
+            }
+            //query参数
+            JSONArray query = new JSONArray();
+            if(url.containsKey("query")) {
+                List<JSONObject> queryData = url.getJSONArray("query").toJavaList(JSONObject.class);
+                for (JSONObject queryParam : queryData) {
+                    JSONObject tmpQueryParam = this.getQueryParam(queryParam.getString("key"), queryParam.getString("value"), true);
+                    query.add(tmpQueryParam);
+                }
+            }
+            //rest参数
+            JSONArray rest = new JSONArray();   // 目前postman没有rest参数 todo
+            //body参数
+            JSONObject body = this.getRequestBody("json", "", new JSONArray(), new JSONArray(), new JSONObject());
+            if(request.containsKey("body")){
+                JSONObject bodyData = request.getJSONObject("body");
+                JSONArray tmpParams = new JSONArray();
+                if (bodyData.getString("mode").equals("raw") && bodyData.get("options") != null &&
+                        bodyData.getJSONObject("options").getJSONObject("raw").getString("language").equals("json")) {  //json格式
+                    body = this.getRequestBody("json", "", new JSONArray(), new JSONArray(), JSONObject.parseObject(body.getString("raw")));
+                } else if (bodyData.getString("mode").equals("raw")) { // raw格式
+                    if(bodyData.get("options") == null){
+                        body = this.getRequestBody("text", bodyData.getString("raw"), new JSONArray(), new JSONArray(), new JSONObject());
+                    }else {
+                        if(bodyData.getJSONObject("options").getJSONObject("raw").getString("language").equals("javascript")) continue;
+                        body = this.getRequestBody(bodyData.getJSONObject("options").getJSONObject("raw").getString("language"),
+                                bodyData.getString("raw"), new JSONArray(), new JSONArray(), new JSONObject());
                     }
-                    swaggerApi.setBody(bodySaveObject + "");
-                    swaggerApi.setMethod("POST");
+                } else if (bodyData.getString("mode").equals("formdata") || bodyData.getString("mode").equals("urlencoded")) {  //formdata格式
+                    JSONArray form = new JSONArray();
+                    List<JSONObject> formData = bodyData.getJSONArray(bodyData.getString("mode")).toJavaList(JSONObject.class);
+                    for (JSONObject formParam : formData) {
+                        form.add(this.getFormParam(formParam.getString("key"), formParam.getString("type"), formParam.getString("value")));
+                    }
+                    if(bodyData.getString("mode").equals("formdata")){
+                        body = this.getRequestBody("form-data", "", new JSONArray(), form, new JSONObject());
+                    }else {
+                        body = this.getRequestBody("form-urlencoded", "", new JSONArray(), form, new JSONObject());
+                    }
+                } else if(bodyData.getString("mode").equals("file")){
+                    JSONArray file = this.getFileParam();
+                    body = this.getRequestBody("file", "", file, new JSONArray(), new JSONObject());
+                } else{
+                    continue;
                 }
-                if (pathItem.getGet() != null){
-                    Operation operation = pathItem.getGet();
-                    swaggerApi.setName(pathItem.getGet().getSummary() + "");
-                    swaggerApi.setMethod("GET");
-                    //解析api请求对象参数
-                    parseParameters(operation, swaggerApi);
+            }
+            Api postmanApi = new Api();
+            postmanApi.setId(UUID.randomUUID() + "");
+            postmanApi.setName(apiInfo.getString("name"));
+            postmanApi.setLevel("P0");
+            postmanApi.setModuleId(moduleId);
+            postmanApi.setProjectId(projectId);
+            postmanApi.setHeader(header.toJSONString());
+            postmanApi.setBody(body.toJSONString());
+            postmanApi.setQuery(query.toJSONString());
+            postmanApi.setRest(rest.toJSONString());
+            postmanApi.setMethod(request.getString("method"));
+            postmanApi.setPath(path);
+            postmanApi.setProtocol("HTTP");
+            postmanApi.setDomainSign("");
+            postmanApi.setDescription("");
+            postmanApi.setCreateTime(System.currentTimeMillis());
+            postmanApi.setUpdateTime(System.currentTimeMillis());
+            postmanApi.setUpdateUser(userId);
+            postmanApi.setCreateUser(userId);
+            postmanApi.setStatus("Normal");
+            apiMapper.addApi(postmanApi);
+        }
+    }
+
+    private void saveSwaggerApi(String data, String projectId, String moduleId, String userId){
+        SwaggerParseResult result = new OpenAPIParser().readContents(data,null,null);
+        OpenAPI openAPI = result.getOpenAPI(); //获取方法swagger对象
+        Paths paths = openAPI.getPaths(); //获取方法对象集合
+        Set<String> pathNames = paths.keySet(); // 获取所有方法路径
+        Components components = openAPI.getComponents(); // 获取实体类对象集合
+        for (String pathName : pathNames) {
+            PathItem pathItem = paths.get(pathName);
+            // 每个请求方式单独生成一个接口
+            Map<PathItem.HttpMethod, Operation> operations = pathItem.readOperationsMap();
+            for(PathItem.HttpMethod method: operations.keySet()){
+                Operation operation = operations.get(method);
+                // 先解析参数
+                List<Parameter> parameters = operation.getParameters();
+                JSONArray header = new JSONArray();
+                JSONArray query = new JSONArray();
+                JSONArray rest = new JSONArray();
+                if(parameters != null) {
+                    parameters.forEach(param -> {
+                        if (param instanceof QueryParameter) {
+                            JSONObject queryParam = this.getQueryParam(param.getName(), String.valueOf(param.getExample()), param.getRequired());
+                            query.add(queryParam);
+                        }else if(param instanceof PathParameter){
+                            JSONObject pathParam = this.getRestParam(param.getName(), String.valueOf(param.getExample()));
+                            rest.add(pathParam);
+                        }else if(param instanceof HeaderParameter) {
+                            JSONObject headerParam = this.getHeaderParam(param.getName(), String.valueOf(param.getExample()));
+                            header.add(headerParam);
+                        } // 其他参数暂不支持
+                    });
                 }
-//                swaggerApi.setRest("tmp rest"); //swagger暂不涉及rest参数的存储
-                swaggerApi.setPath(pathName+ "");  //   /api/add的接口path
+                // 解析body
+                RequestBody requestBody = operation.getRequestBody();
+                Content content = null;
+                if(requestBody != null){
+                    content = operation.getRequestBody().getContent();
+                }
+                JSONObject body = this.getRequestBody("json", "", new JSONArray(), new JSONArray(), new JSONObject());
+                if (content != null) {
+                    Set<String> contentTypes = content.keySet();
+                    if(contentTypes.contains(org.springframework.http.MediaType.APPLICATION_JSON_VALUE)){
+                        // 优先 json 请求体
+                        MediaType mediaType = content.get(org.springframework.http.MediaType.APPLICATION_JSON_VALUE);
+                        Schema schema = mediaType.getSchema();
+                        Object json = this.getRequestBodyData(schema, components);
+                        body = this.getRequestBody("json", "", new JSONArray(), new JSONArray(), json);
+                    }else if(contentTypes.contains(org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE)){
+                        JSONArray file = this.getFileParam();
+                        body = this.getRequestBody("file", "", file, new JSONArray(), new JSONObject());
+                    }else if(contentTypes.contains(org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE)){
+                        JSONArray form = new JSONArray();
+                        MediaType mediaType = content.get(org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE);
+                        Schema schema = mediaType.getSchema();
+                        JSONObject json = (JSONObject) this.getRequestBodyData(schema, components);
+                        for(String name: json.keySet()){
+                            JSONObject formParam = this.getFormParam(name, "String", json.getString(name));
+                            form.add(formParam);
+                        }
+                        body = this.getRequestBody("file", "", new JSONArray(), form, new JSONObject());
+                    }else if(contentTypes.contains(org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)){
+                        JSONArray form = new JSONArray();
+                        MediaType mediaType = content.get(org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE);
+                        Schema schema = mediaType.getSchema();
+                        JSONObject json = (JSONObject) this.getRequestBodyData(schema, components);
+                        for(String name: json.keySet()){
+                            JSONObject formParam = this.getFormParam(name, "String", json.getString(name));
+                            form.add(formParam);
+                        }
+                        body = this.getRequestBody("file", "", new JSONArray(), form, new JSONObject());
+                    }else if(contentTypes.contains(org.springframework.http.MediaType.TEXT_PLAIN_VALUE)){
+                        MediaType mediaType = content.get(org.springframework.http.MediaType.TEXT_PLAIN_VALUE);
+                        Schema schema = mediaType.getSchema();
+                        String text = (String) this.getRequestBodyData(schema, components);
+                        body = this.getRequestBody("text", text, new JSONArray(), new JSONArray(), new JSONObject());
+                    }else if(contentTypes.contains(org.springframework.http.MediaType.TEXT_XML_VALUE)){
+                        MediaType mediaType = content.get(org.springframework.http.MediaType.TEXT_XML_VALUE);
+                        Schema schema = mediaType.getSchema();
+                        String xml = (String) this.getRequestBodyData(schema, components);
+                        body = this.getRequestBody("xml", xml, new JSONArray(), new JSONArray(), new JSONObject());
+                    }else if(contentTypes.contains(org.springframework.http.MediaType.TEXT_HTML_VALUE)){
+                        MediaType mediaType = content.get(org.springframework.http.MediaType.TEXT_HTML_VALUE);
+                        Schema schema = mediaType.getSchema();
+                        String html = (String) this.getRequestBodyData(schema, components);
+                        body = this.getRequestBody("html", html, new JSONArray(), new JSONArray(), new JSONObject());
+                    }else {
+                        continue;   // 其余类型不支持
+                    }
+                }
+                Api swaggerApi = new Api();
+                swaggerApi.setId(UUID.randomUUID().toString());
+                swaggerApi.setName(operation.getSummary());
+                swaggerApi.setLevel("P0");
+                swaggerApi.setModuleId(moduleId);
+                swaggerApi.setProjectId(projectId);
+                swaggerApi.setHeader(header.toJSONString());
+                swaggerApi.setBody(body.toJSONString());
+                swaggerApi.setQuery(query.toJSONString());
+                swaggerApi.setRest(rest.toJSONString());
+                swaggerApi.setMethod(method.toString().toUpperCase(Locale.ROOT));
+                swaggerApi.setPath(pathName);
                 swaggerApi.setProtocol("HTTP");
                 swaggerApi.setDomainSign("");
-                swaggerApi.setDescription("swagger_api");
-
+                swaggerApi.setDescription(pathItem.getDescription());
                 swaggerApi.setCreateTime(System.currentTimeMillis());
                 swaggerApi.setUpdateTime(System.currentTimeMillis());
-                swaggerApi.setUpdateUser(apiMap.get("userId"));
-                swaggerApi.setCreateUser(apiMap.get("userId"));
+                swaggerApi.setUpdateUser(userId);
+                swaggerApi.setCreateUser(userId);
                 swaggerApi.setStatus("Normal");
-
                 apiMapper.addApi(swaggerApi);
-                System.out.println("Swagger入库的api对象: " + swaggerApi);
-                System.out.println("swagger api save succ");
             }
-            return true;
-        }else {
-            System.out.println("不支持的文件导入格式!");
-            return false;
         }
     }
     /**
-     * 解析body参数
-     * @param operation
-     * @param tmpJsonDateObject
-     * @param tmpDataArray
-     * @param tmpRawDataArray
+     * 获取请求体数据
      */
-    private void parseRequestBody(Operation operation,Map<String,Object> tmpJsonDateObject, JSONArray tmpDataArray,JSONArray tmpRawDataArray) {
-        if (operation.getRequestBody() == null) {
-            //解析表单格式参数
-            parseFromBody(operation, tmpDataArray);
-        }else {
-            //解析json格式参数
-            parseBody(operation,tmpJsonDateObject, tmpDataArray,tmpRawDataArray);
-        }
-    }
-
-    /**
-     * 解析 form表单参数
-     * @param operation
-     * @param tmpDataArray
-     */
-    private void parseFromBody(Operation operation, JSONArray tmpDataArray){
-        List<Parameter> parameters = operation.getParameters();
-        if (CollectionUtils.isEmpty(parameters)) {
-            return;
-        }
-        parameters.forEach(parameter -> {
-            if (parameter != null) {
-                //解析From参数
-                parseFromParameters(parameter, tmpDataArray);
-            }
-        });
-    }
-
-    /**
-     * 解析body参数
-     * @param operation
-     * @param tmpJsonDateObject
-     * @param tmpDataArray
-     * @param tmpRawDataArray
-     */
-    private void parseBody(Operation operation, Map<String,Object> tmpJsonDateObject, JSONArray tmpDataArray , JSONArray tmpRawDataArray) {
-        Content content = operation.getRequestBody().getContent();
-        if (content == null) {
-            return;
-        }
-        // 多个contentType ，优先取json
-        String contentType = org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-        MediaType mediaType = content.get(contentType);
-        if (mediaType == null) {
-            Set<String> contentTypes = content.keySet();
-            if (contentTypes.size() == 0) {  //  防止空指针
-                return;
-            }
-            contentType = contentTypes.iterator().next();
-            if (StringUtils.isBlank(contentType)) {
-                return;
-            }
-            mediaType = content.get(contentType);
-            if (contentType.equals("*/*")) {
-                contentType = org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-            }
-        }
-
-        Set<String> refSet = new HashSet<>();
-        Map<String, Schema> infoMap = new HashMap();
-        Schema schema = mediaType.getSchema();
-        Object bodyData = null;
-        if (!StringUtils.equals(contentType, org.springframework.http.MediaType.APPLICATION_JSON_VALUE)) {
-            //解析json结构
-            bodyData = parseSchemaToJson(schema, refSet, infoMap);
-            if (bodyData == null) return;
-        }
-
-        if (StringUtils.equals(contentType, org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE)) {
-            //解析key-value结构
-            parseKvBody(schema, tmpDataArray, bodyData);
-        } else if (StringUtils.equals(contentType, org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)) {
-            //解析key-value结构
-            parseKvBody(schema, tmpDataArray, bodyData);
-        } else if (StringUtils.equals(contentType, org.springframework.http.MediaType.APPLICATION_JSON_VALUE)) {
-            //解析json结构
-            Map<String, JsonSchemaItemDTO> jsonSchemaItemMap = parseSchema(schema, refSet).getProperties();
-            Map<String, String> stringMap = new HashMap<>();
-            jsonSchemaItemMap.forEach((key,value) -> {
-                stringMap.put(key,value.getType());
-            });
-            parseSchemaToApi(stringMap,tmpJsonDateObject,jsonSchemaItemMap);
-        }else {
-            tmpRawDataArray.add(bodyData.toString());
-        }
-
-    }
-    /**
-     * 解析属性转api实体类，生成随机参数
-     * @param infoMap
-     * @param tmpJsonDateObject
-     * @param jsonSchemaItemMap
-     */
-    private void parseSchemaToApi(Map<String, String> infoMap,Map<String,Object> tmpJsonDateObject,Map<String, JsonSchemaItemDTO> jsonSchemaItemMap) {
-        //解析swagger对象成json对象，并且随机生成值
-        try {
-            infoMap.forEach((name,type) ->{
-                if (StringUtils.contains(type, "string")){
-                    tmpJsonDateObject.put(name, "");
-                }else if (StringUtils.contains(type, "integer")){
-                    tmpJsonDateObject.put(name, 0);
-
-                }else if (StringUtils.contains(type, "number")){
-                    tmpJsonDateObject.put(name,0);
-
-                }else if (StringUtils.contains(type, "boolean")){
-                    tmpJsonDateObject.put(name,false);
-
-                }else if (StringUtils.contains(type, "object")){
-                    /**
-                     * 1.根据名字拿到实体类
-                     * 2.getProperties()获取属性值
-                     * 3.遍历属性设置名字和类型
-                     * 3.调用解析方法设置类型对应的value
-                     */
-                    JsonSchemaItemDTO schemaItem = jsonSchemaItemMap.get(name);
-                    Map<String, JsonSchemaItemDTO> properties = schemaItem.getProperties();
-                    Map<String, String> stringMap = new HashMap<>();
-                    properties.forEach((k,v) -> {
-                        stringMap.put(k,v.getType());
-                    });
-                    JSONObject object = new JSONObject();
-                    parseSchemaToApi(stringMap,object,properties);
-                    tmpJsonDateObject.put(name,object);
-
-                }else if (StringUtils.contains(type, "array")){
-                    /**
-                     * 1.parseArrayToDateObject()解析数组值
-                     */
-                    JSONArray jsonArray = new JSONArray();
-                    tmpJsonDateObject.put(name,jsonArray);
-
-                }
-            });
-        }catch (Exception e){
-            System.out.println(e.getMessage());
-            e.printStackTrace();
-        }
-
-    }
-    /**
-     * 解析属性类型
-     * @param schema
-     * @param refSet
-     * @return
-     */
-    private JsonSchemaItemDTO parseSchema(Schema schema, Set<String> refSet) {
+    private Object getRequestBodyData(Schema schema, Components components){
         if (schema == null) return null;
-        JsonSchemaItemDTO item = new JsonSchemaItemDTO();
-        if(schema.getRequired()!=null){
-            item.setRequired(schema.getRequired());
-        }
         if (StringUtils.isNotBlank(schema.get$ref())) {
-            if (refSet.contains(schema.get$ref())) return item;
-            item.setType("object");
-            refSet.add(schema.get$ref());
-            Schema modelByRef = getModelByRef(schema.get$ref());
-            if (modelByRef != null){
-                item.setProperties(parseSchemaProperties(modelByRef, refSet));
-                item.setRequired(modelByRef.getRequired());
+            JSONObject data;
+            Schema sonNode = this.getModelByRef(schema.get$ref(), components);
+            data = (JSONObject) this.getRequestBodyData(sonNode, components);
+            return data;
+        }else if(schema instanceof ObjectSchema){
+            Map<String, Schema> schemaMap = schema.getProperties();
+            JSONObject data = new JSONObject();
+            for(String key: schemaMap.keySet()){
+                data.put(key, this.getRequestBodyData(schemaMap.get(key), components));
             }
-        } else if (schema instanceof ArraySchema) {
-            Schema items = ((ArraySchema) schema).getItems();
-            item.setType("array");
-            item.setItems(new ArrayList<>());
-            JsonSchemaItemDTO arrayItem = parseSchema(items, refSet);
-            if (arrayItem != null) item.getItems().add(arrayItem);
-        } else if (schema instanceof ObjectSchema) {
-            item.setType("object");
-            item.setProperties(parseSchemaProperties(schema, refSet));
-        } else if (schema instanceof StringSchema) {
-            item.setType("string");
+            return data;
+        }else if(schema instanceof ArraySchema){
+            JSONArray data = new JSONArray();
+            data.add(this.getRequestBodyData(schema.getItems(), components));
+            return data;
+        }else if (schema instanceof StringSchema) {
+            if(schema.getExample()!=null){
+                return schema.getExample();
+            }else {
+                return "";
+            }
         } else if (schema instanceof IntegerSchema) {
-            item.setType("integer");
+            if(schema.getExample()!=null){
+                return schema.getExample();
+            }else {
+                return 0;
+            }
         } else if (schema instanceof NumberSchema) {
-            item.setType("number");
+            if(schema.getExample()!=null){
+                return schema.getExample();
+            }else {
+                return 0.0;
+            }
         } else if (schema instanceof BooleanSchema) {
-            item.setType("boolean");
+            if(schema.getExample()!=null){
+                return schema.getExample();
+            }else {
+                return true;
+            }
         } else {
             return null;
         }
-
-        item.setDescription(schema.getDescription());
-        return item;
-    }
-    private Map<String, JsonSchemaItemDTO> parseSchemaProperties(Schema schema, Set<String> refSet) {
-        Map<String, JsonSchemaItemDTO> JsonSchemaProperties = new LinkedHashMap<>();
-        if (null == schema ) return JsonSchemaProperties;
-        Map<String, Schema> properties = schema.getProperties();
-        if (null == properties) return JsonSchemaProperties;
-        properties.forEach((key, value) -> {
-            JsonSchemaItemDTO item = new JsonSchemaItemDTO();
-            item.setDescription(schema.getDescription());
-            JsonSchemaItemDTO proItem = parseSchema(value, refSet);
-            if (proItem != null) JsonSchemaProperties.put(key, proItem);
-        });
-        return JsonSchemaProperties;
-    }
-    /**
-     * 解析属性转json类型
-     * @param schema
-     * @param refSet
-     * @param infoMap
-     * @return
-     */
-    private Object parseSchemaToJson(Schema schema, Set<String> refSet, Map<String, Schema> infoMap) {
-        if (schema == null) {
-            return new JSONObject(true);
-        }
-        infoMap.put(schema.getName(), schema);
-        if (StringUtils.isNotBlank(schema.get$ref())) {
-            //解析包装对象类型参数
-            if (refSet.contains(schema.get$ref())) {
-                return new JSONObject(true);
-            }
-            refSet.add(schema.get$ref());
-            Schema modelByRef = getModelByRef(schema.get$ref());
-            Object propertiesResult = null;
-            if (modelByRef != null)
-                propertiesResult = parseSchemaPropertiesToJson(modelByRef, refSet, infoMap);
-            return propertiesResult == null ? getDefaultValueByPropertyType(schema) : propertiesResult;
-        } else if (schema instanceof ArraySchema) {
-            //解析数组类型参数
-            JSONArray jsonArray = new JSONArray();
-            Schema items = ((ArraySchema) schema).getItems();
-            parseSchemaToJson(items, refSet, infoMap);
-            jsonArray.add(parseSchemaToJson(items, refSet, infoMap));
-            return jsonArray;
-        } else if (schema instanceof ObjectSchema) {
-            //解析对象类型参数
-            Object propertiesResult = parseSchemaPropertiesToJson(schema, refSet, infoMap);
-            return propertiesResult == null ? getDefaultValueByPropertyType(schema) : propertiesResult;
-        } else {
-            return schema;
-        }
     }
 
-    /**
-     * 根据类型获取默认值
-     * @param value
-     * @return
-     */
-    private Object getDefaultValueByPropertyType(Schema value) {
-        Object example = value.getExample();
-        if (value instanceof IntegerSchema) {
-            return example == null ? 0 : example;
-        } else if (value instanceof NumberSchema) {
-            return example == null ? 0.0 : example;
-        } else if (value instanceof StringSchema) {
-            return example == null ? "" : example;
-        } else {// todo 其他类型?
-            return StringUtils.isBlank(value.getDescription()) ? "" : value.getDescription();
-        }
-    }
-
-    /**
-     * 解析key-value类型body参数
-     * @param schema
-     * @param tmpDataArray
-     * @param data
-     */
-    private void parseKvBody(Schema schema, JSONArray tmpDataArray, Object data) {
-        if (data instanceof JSONObject) {
-            ((JSONObject) data).forEach((k, v) -> {
-                //解析包装对象类型参数
-                parseKvBodyItem(schema, tmpDataArray, k);
-            });
-        } else {
-            if(data instanceof Schema) {
-                Schema dataSchema = (Schema) data;
-                if (StringUtils.isNotBlank(dataSchema.getName())) {
-                    parseKvBodyItem(schema, tmpDataArray, dataSchema.getName());
-                } else if (dataSchema.getProperties() != null) {
-                    dataSchema.getProperties().forEach((k, v) -> {
-                        if (v instanceof Schema) {
-                            parseKvBodyItem(v, tmpDataArray, k.toString());
-                        }
-                    });
-                }
-            }
-        }
-    }
     /**
      * 获取包装类型实体类
-     * @param ref
-     * @return
      */
-    private Schema getModelByRef(String ref) {
+    private Schema getModelByRef(String ref, Components components) {
         if (StringUtils.isBlank(ref)) {
             return null;
         }
         if (ref.split("/").length > 3) {
             ref = ref.replace("#/components/schemas/", "");
         }
-        if (this.components.getSchemas() != null)
-            return this.components.getSchemas().get(ref);
+        if (components.getSchemas() != null)
+            return components.getSchemas().get(ref);
         return null;
     }
+
     /**
-     * 解析key-value类型参数
-     * @param schemaObject
-     * @param tmpDataArray
-     * @param name
+     * 生成body参数
      */
-    private void parseKvBodyItem(Object schemaObject, JSONArray tmpDataArray, String name) {
-        Schema schema = (Schema) schemaObject;
-        if (schema == null) return;
-        //添加key-value类型参数
-        tmpDataArray.add(packageData(name, schema.getType(), String.valueOf(schema.getExample() == null ? "" : schema.getExample())));
+    private JSONObject getRequestBody(String type, String raw, JSONArray file, JSONArray form, Object json) {
+        JSONObject body = new JSONObject();
+        body.put("type", type);
+        body.put("raw", raw);
+        body.put("file", file);
+        body.put("form", form);
+        body.put("json", json.toString());
+        return body;
     }
+
     /**
-     * 解析属性转json类型
-     * @param schema
-     * @param refSet
-     * @param infoMap
-     * @return
+     * 生成header参数
      */
-    private Object parseSchemaPropertiesToJson(Schema schema, Set<String> refSet, Map<String, Schema> infoMap) {
-        if (schema == null) return null;
-        Map<String, Schema> properties = schema.getProperties();
-        if (properties.isEmpty()) return null;
-        JSONObject jsonObject = new JSONObject(true);
-        properties.forEach((key, value) -> {
-            jsonObject.put(key, parseSchemaToJson(value, refSet, infoMap));
-        });
-        return jsonObject;
+    private JSONObject getHeaderParam(String name, String value) {
+        JSONObject headerParam = new JSONObject();
+        headerParam.put("name", name);
+        headerParam.put("value", value);
+        return headerParam;
     }
+
     /**
-     * 解析参数
-     * @param operation
-     * @param api
+     * 生成rest参数
      */
-    private void parseParameters(Operation operation, Api api) {
-        List<Parameter> parameters = operation.getParameters();
-        if (CollectionUtils.isEmpty(parameters)) {
-            return;
+    private JSONObject getRestParam(String name, String value) {
+        JSONObject restParam = new JSONObject();
+        restParam.put("name", name);
+        restParam.put("value", value);
+        return restParam;
+    }
+
+    /**
+     * 生成query参数
+     */
+    private JSONObject getQueryParam(String name, String value, Boolean required) {
+        JSONObject queryParam = new JSONObject();
+        queryParam.put("name", name);
+        queryParam.put("value", value);
+        queryParam.put("required", required);
+        return queryParam;
+    }
+
+    /**
+     * 生成form表单格式
+     */
+    private JSONObject getFormParam(String name, String type, String value){
+        JSONObject formParam = new JSONObject();
+        formParam.put("name", name);
+        if(type.toLowerCase(Locale.ROOT).equals("file")){
+            formParam.put("type", "File");
+            formParam.put("value", "");
+        }else {
+            formParam.put("type", "String");
+            formParam.put("value", value);
         }
-        JSONArray querySaveArray = new JSONArray(); //保存Query参数
-        parameters.forEach(parameter -> {
-            if (parameter instanceof QueryParameter) {
-                //解析Query参数
-                parseQueryParameters(parameter, querySaveArray);
-            }
-        });
-        api.setQuery(querySaveArray + "");
+        formParam.put("required", true);
+        return formParam;
     }
 
     /**
-     * 解析From参数，返回json数组结果
-     * @param fromParameter
-     * @param fromSaveArray
+     * 生成文件格式
      */
-    private void parseFromParameters(Parameter fromParameter,JSONArray fromSaveArray) {
-        //解析成{name：”123“，value：”123“，required：”true“}
-        JSONObject tmpQueryObject = new JSONObject();
-        tmpQueryObject.put("name", fromParameter.getName());
-        tmpQueryObject.put("value", String.valueOf(fromParameter.getExample()));
-        tmpQueryObject.put("required", fromParameter.getRequired());
-        fromSaveArray.add(tmpQueryObject);
-    }
-
-    /**
-     * 解析Query参数，返回json数组结果
-     * @param parameter
-     * @param querySaveArray
-     */
-    private void parseQueryParameters(Parameter parameter,JSONArray querySaveArray) {
-        //解析成{name：”123“，value：”123“，required：”true“}
-        QueryParameter queryParameter = (QueryParameter) parameter;
-        JSONObject tmpQueryObject = new JSONObject();
-        tmpQueryObject.put("name", queryParameter.getName());
-        tmpQueryObject.put("value", String.valueOf(queryParameter.getExample()));
-        tmpQueryObject.put("required", queryParameter.getRequired());
-        querySaveArray.add(tmpQueryObject);
-    }
-
-    private JSONObject packageData(String key, String type, String value){
-        JSONObject tmpObjectData = new JSONObject();
-        tmpObjectData.put("name", key);
-        tmpObjectData.put("type", type);
-        tmpObjectData.put("value", value);
-        tmpObjectData.put("required", true);
-        return tmpObjectData;
+    private JSONArray getFileParam(){
+        JSONArray file = new JSONArray();
+        JSONObject fileParam = new JSONObject();
+        fileParam.put("file", "");
+        file.add(fileParam);
+        return file;
     }
 }
