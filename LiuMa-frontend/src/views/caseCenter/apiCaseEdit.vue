@@ -23,7 +23,7 @@
         <el-table-column label="接口地址" prop="apiPath">
         </el-table-column>
         <el-table-column label="步骤描述" min-width="200px">
-            <template slot-scope="scope">
+            <template v-slot="scope">
                 <el-input size="mini" style="width: 90%" v-model="scope.row.description" placeholder="请输入步骤描述"/>
             </template>
         </el-table-column>
@@ -256,7 +256,8 @@ export default {
             this.caseApiFormCopy = JSON.parse(JSON.stringify(this.caseApiForm))
         },
         confirmApiCancel(){
-            this.caseForm.caseApis[this.caseApiIndexCopy] = JSON.parse(JSON.stringify(this.caseApiFormCopy));
+            // 取消编辑接口
+            this.$set( this.caseForm.caseApis,this.caseApiIndexCopy,JSON.parse(JSON.stringify(this.caseApiFormCopy)));
             this.editCaseApiVisible = false;
         },
         deleteCaseApi(index){
@@ -272,7 +273,6 @@ export default {
             caseApi.index = this.caseForm.caseApis.length+1;
             // console.log(this.caseForm.caseApis);
             this.caseForm.caseApis.push(caseApi);
-            this.selections.splice(0, this.selections.length);
         },
         banCaseApi(index){
             if(this.caseForm.caseApis[index].isBan === true){

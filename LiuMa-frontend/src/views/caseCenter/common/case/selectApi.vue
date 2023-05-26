@@ -1,6 +1,6 @@
 /**
 * 选择接口弹窗
-*/ 
+*/
 <template>
     <div>
         <el-form :inline="true" :model="searchForm">
@@ -8,7 +8,7 @@
                 <el-input size="small" v-model="searchForm.condition" prefix-icon="el-icon-search" placeholder="请输入接口ID、名称、地址"/>
             </el-form-item>
             <el-form-item label="" prop="moduleName">
-                <select-tree placeholder="模块分类" style="width: 300px" :selectedValue="searchForm.moduleId" 
+                <select-tree placeholder="模块分类" style="width: 300px" :selectedValue="searchForm.moduleId"
                         :selectedLabel="searchForm.moduleName" :treeData="modules" @selectModule="selectModule($event)"/>
             </el-form-item>
             <el-form-item>
@@ -102,7 +102,7 @@ export default {
                 this.pageParam.currentPage = this.searchForm.page;
                 this.pageParam.pageSize = this.searchForm.limit;
                 this.pageParam.total = data.total;
-            });   
+            });
         },
         // 分页插件事件
         callFather(param) {
