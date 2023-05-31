@@ -157,8 +157,9 @@ def analyze_case(tmp_case: Api_case):
 
 
 class Locator:
-    table_head = (By.XPATH, '//*[text()="请求Body参数" or text()="参数"]/following-sibling::div[1]/table/thead/tr/th')
-    table_body_items = (By.XPATH, '//*[text()="请求Body参数"]/following-sibling::div[1]/table/tbody/tr')
+    request_locator_xpath = '//*[text()="请求Body参数" or text()="参数"]'
+    table_head = (By.XPATH, request_locator_xpath + '/following-sibling::div[1]/table/thead/tr/th')
+    table_body_items = (By.XPATH, request_locator_xpath + '/following-sibling::div[1]/table/tbody/tr')
     title = (By.XPATH, '//*[@id="doc-title"]')
     request_url = (By.XPATH, '//*[@id="h5--url"]/following-sibling::ul[1]//code')
     request_method = (By.XPATH, '//*[text()="请求方式"]/following-sibling::ul[1]/li[1]')
@@ -167,7 +168,7 @@ class Locator:
 
     @staticmethod
     def table_body(row, col):
-        return By.XPATH, '//*[text()="请求Body参数"]/following-sibling::div[1]/table/tbody/tr[{}]/td[{}]'.format(
+        return By.XPATH, Locator.request_locator_xpath + '/following-sibling::div[1]/table/tbody/tr[{}]/td[{}]'.format(
             row + 1, col + 1)
 
 
