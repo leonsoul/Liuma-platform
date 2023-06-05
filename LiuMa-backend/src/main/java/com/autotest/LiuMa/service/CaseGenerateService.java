@@ -246,6 +246,7 @@ public class CaseGenerateService {
     }
 
     private List<ApiParamVerifyDTO> analysisRule(String replaceType, ApiParamRuleDTO rule){
+        // 生成需要校验的条目
         List<ApiParamVerifyDTO> verifyDTOS = new ArrayList<>();
         // 参数必填性校验
         if(!rule.getRequired().equals("None")) {    // 除选择不校验外
@@ -312,9 +313,11 @@ public class CaseGenerateService {
             verifyDTO.setDescription(String.format("【%s用例】校验%s%s类型字段%s%s:%s",
                     randomRule[0].toString(), replaceType, type, name, randomRule[1].toString(), randomRule[2].toString()));
             if(type.equals("String")){
-                verifyDTO.setValue(StringUtils.randomSimpleString((Integer) randomRule[2]));
+                int value = (int) ((long) randomRule[2]);
+                verifyDTO.setValue(StringUtils.randomSimpleString(value));
             }else if(type.equals("SpecialStr")){
-                verifyDTO.setValue(StringUtils.randomSpecialString((Integer) randomRule[2]));
+                int value = (int) ((long) randomRule[2]);
+                verifyDTO.setValue(StringUtils.randomSpecialString(value));
             }else {
                 verifyDTO.setType(type);
                 verifyDTO.setValue(randomRule[2]);
@@ -325,6 +328,7 @@ public class CaseGenerateService {
     }
 
     private List<Object[]> analysisRandom(String random){
+        // 返回边界值数据，用【正向】，【描述】，【数值】
         List<Object[]> result = new ArrayList<>();
         if(random == null || random.equals("")){
             return result;
@@ -337,7 +341,7 @@ public class CaseGenerateService {
         String max = random.substring(0, random.length()-1).split(",")[1];
         // 判断最大最小可输入值
         Number[] mixList = this.getNumberList(mix, random.startsWith("["), true);
-        Number[] maxList = this.getNumberList(max, random.startsWith("]"), false);
+        Number[] maxList = this.getNumberList(max, random.endsWith("]"), false);
         result.add(new Object[]{"正向", "可用最小边界值(长度)", mixList[0]});
         result.add(new Object[]{"逆向", "最小边界值(长度)之外", mixList[1]});
         result.add(new Object[]{"正向", "可用最大边界值(长度)", maxList[0]});
@@ -362,9 +366,9 @@ public class CaseGenerateService {
             }
         }else {
             if(isMix){
-                result = new BigDecimal[]{bdValue.subtract(step), bdValue};
-            }else {
                 result = new BigDecimal[]{bdValue.add(step), bdValue};
+            }else {
+                result = new BigDecimal[]{bdValue.subtract(step), bdValue};
             }
         }
         if(num.contains(".")) {
