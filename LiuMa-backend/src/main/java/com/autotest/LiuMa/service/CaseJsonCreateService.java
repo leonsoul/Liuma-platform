@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 
@@ -132,6 +133,7 @@ public class CaseJsonCreateService {
     }
 
     public JSONObject getDebugData(TaskDTO task, List<TaskTestCollectionResponse> testCollectionList){
+        // 获得debug数据
         TaskTestCaseResponse taskTestCase = testCollectionList.get(0).getTestCaseList().get(0);
         if(taskTestCase.getCaseType().equals("API")){ // api用例
             TestCaseApiResponse testCase = this.getApiTestCaseJson(task.getEnvironmentId(),task.getSourceType(), taskTestCase);
@@ -573,6 +575,7 @@ public class CaseJsonCreateService {
                 pre.add(controllerData);
             }else if(controllerName.startsWith("post")){
                 post.add(controllerData);
+//                controllerObj.put(controllerName, controllerData.getString("value"));
             }else {
                 controllerObj.put(controllerName, controllerData.getString("value"));
             }
@@ -599,7 +602,8 @@ public class CaseJsonCreateService {
     }
 
     public JSONObject getApiQuery(JSONArray query){
-        JSONObject queryObj = new JSONObject();
+        JSONObject queryObj = new JSONObject(new LinkedHashMap<>()); // JSONObject是无序map，会导致收集到的数据顺序会与实际不符，不符合部分接口要求，修改为LinkedHashMap有序map，能够正确返回数据顺序。
+//        JSONObject queryObj = new JSONObject(new LinkedHashMap<>());
         if(query==null){
             return queryObj;
         }
@@ -715,7 +719,7 @@ public class CaseJsonCreateService {
         // 用例执行以用例id为 集合id-用例id 都只有一个集合一个用例
         // 集合执行只有一个集合 多条用例 计划执行有多个集合 多条用例
         List<TaskTestCollectionResponse> taskTestCollectionList = new ArrayList<>();
-        if(task.getSourceType().equals(ReportSourceType.PLAN.toString())){
+        if(task.getSourceType().equals(ReportSourceType.PLAN.toString())){  // 计划用例
             List<PlanCollectionDTO> planCollections = planCollectionMapper.getPlanCollectionList(task.getSourceId());
             for(PlanCollectionDTO planCollectionDTO:planCollections){
                 TaskTestCollectionResponse taskTestCollection = new TaskTestCollectionResponse();
@@ -732,7 +736,7 @@ public class CaseJsonCreateService {
                 taskTestCollection.setTestCaseList(taskTestCaseList);
                 taskTestCollectionList.add(taskTestCollection);
             }
-        }else if(task.getSourceType().equals(ReportSourceType.COLLECTION.toString())){
+        }else if(task.getSourceType().equals(ReportSourceType.COLLECTION.toString())){  // 用例集合
             TaskTestCollectionResponse taskTestCollection = new TaskTestCollectionResponse();
             taskTestCollection.setCollectionId(task.getSourceId());
             Collection collection = collectionMapper.getCollectionDetail(task.getSourceId());
@@ -745,7 +749,7 @@ public class CaseJsonCreateService {
             List<TaskTestCaseResponse> taskTestCaseList = this.getTaskTestCaseList(task.getSourceId());
             taskTestCollection.setTestCaseList(taskTestCaseList);
             taskTestCollectionList.add(taskTestCollection);
-        }else if(task.getSourceType().equals(ReportSourceType.CASE.toString())){
+        }else if(task.getSourceType().equals(ReportSourceType.CASE.toString())){  // 用例
             TaskTestCollectionResponse taskTestCollection = new TaskTestCollectionResponse();
             taskTestCollection.setCollectionId(task.getSourceId());
             taskTestCollection.setDeviceId(task.getDeviceId());
@@ -758,7 +762,7 @@ public class CaseJsonCreateService {
             taskTestCaseList.add(taskTestCase);
             taskTestCollection.setTestCaseList(taskTestCaseList);
             taskTestCollectionList.add(taskTestCollection);
-        }else if(task.getSourceType().equals(ReportSourceType.TEMP.toString())){
+        }else if(task.getSourceType().equals(ReportSourceType.TEMP.toString())){  // 临时调试
             DebugData debugData = debugDataMapper.getDebugData(task.getSourceId());
             CaseRequest caseRequest = JSONObject.parseObject(debugData.getData(), CaseRequest.class);
             TaskTestCollectionResponse taskTestCollection = new TaskTestCollectionResponse();
