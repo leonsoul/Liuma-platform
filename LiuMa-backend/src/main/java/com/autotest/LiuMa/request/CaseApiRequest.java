@@ -9,26 +9,28 @@ import lombok.Setter;
 @Setter
 @Getter
 public class CaseApiRequest {
-    private String id; // 用例id uuid
+    private String id;
 
-    private Long index; //用例执行顺序 从1开始
+    private Long index;
 
-    private String caseId; // 用例id uuid
+    private String caseId;
 
-    private String apiId; // APIid  uuid
+    private String apiId;
 
-    private JSONArray header; // 请求头
+    private String description;
 
-    private JSONObject body; // 请求data
+    private JSONArray header;
 
-    private JSONArray query; // 请求query
+    private JSONObject body;
+
+    private JSONArray query;
 
     private JSONArray rest;
 
-    private JSONArray assertion; //断言格式
+    private JSONArray assertion;
 
-    private JSONArray relation; // 关联取值
+    private JSONArray relation;
 
-    private JSONArray controller; // 逻辑控件
+    private JSONArray controller;
 
 }

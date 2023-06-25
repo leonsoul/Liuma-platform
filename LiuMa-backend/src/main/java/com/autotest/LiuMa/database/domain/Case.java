@@ -1,45 +1,42 @@
 package com.autotest.LiuMa.database.domain;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import com.autotest.LiuMa.request.CaseApiRequest;
-import com.autotest.LiuMa.request.CaseWebRequest;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.List;
 
 @Data
 public class Case implements Serializable {
-    private String id; // 用例id uuid
+    private String id;
 
-    private Long num; //用例管理里的NO
+    private Long num;
 
-    private String name; // 用例名称
+    private String name;
 
-    private String level; //用例等级
+    private String level;
 
-    private String moduleId; // 模块id uuid
+    private String moduleId;
 
-    private String projectId; // 项目id
+    private String projectId;
 
-    private String type; //类型 API\WEB
+    private String type;
 
-    private String thirdParty; // 第三方标识 默认""
+    private String thirdParty;
 
-    private String description; // 用例描述  默认 null
+    private String description;
 
-    private String environmentIds; // 环境列表 列表形式 uuid
+    private String environmentIds;
 
-    private String commonParam; // 配置信息 包含 导入函数【函数uuid】，导入公参，公用Header，公用Proxy
+    private String system;
 
-    private Long createTime;//创建时间
+    private String commonParam;
 
-    private Long updateTime; //更新时间
+    private Long createTime;
 
-    private String createUser; //创建者
+    private Long updateTime;
 
-    private String updateUser;//更新者
+    private String createUser;
+
+    private String updateUser;
 
     private String status;
 

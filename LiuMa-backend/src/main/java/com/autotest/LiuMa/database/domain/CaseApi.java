@@ -1,33 +1,33 @@
 package com.autotest.LiuMa.database.domain;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import lombok.Data;
 
 import java.io.Serializable;
 
 @Data
 public class CaseApi implements Serializable {
-    private String id; // 用例id uuid
+    private String id;
 
-    private Long index; //用例执行顺序 从1开始
+    private Long index;
 
-    private String caseId; // 用例id uuid
+    private String caseId;
 
-    private String apiId; // APIid  uuid
+    private String apiId;
 
-    private String header; // 请求头
+    private String description;
 
-    private String body; // 请求data
+    private String header;
 
-    private String query; // 请求query
+    private String body;
+
+    private String query;
 
     private String rest;
 
-    private String assertion; //断言格式
+    private String assertion;
 
-    private String relation; // 关联取值
+    private String relation;
 
-    private String controller; // 逻辑控件
+    private String controller;
 
 }

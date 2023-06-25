@@ -14,9 +14,11 @@ public class Report implements Serializable {
 
     private String environmentId;
 
-    private String sourceType; // 来源类型，来自集合等等
+    private String deviceId;
 
-    private String sourceId; // 来源id 使用uuid
+    private String sourceType;
+
+    private String sourceId;
 
     private Long startTime;
 

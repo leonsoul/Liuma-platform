@@ -11,41 +11,45 @@ import java.util.List;
 @Setter
 @Getter
 public class CaseRequest {
-    private String id; // 用例id uuid
+    private String id;
 
-    private Long num; //用例管理里的NO
+    private Long num;
 
-    private String name; // 用例名称
+    private String name;
 
-    private String level; //用例等级
+    private String level;
 
-    private String moduleId; // 模块id uuid
+    private String moduleId;
 
-    private String moduleName; //模块名称 所属模块
+    private String moduleName;
 
-    private String projectId; // 项目id
+    private String projectId;
 
-    private String type; //类型 API\WEB
+    private String type;
 
-    private String thirdParty; // 第三方标识 默认""
+    private String thirdParty;
 
-    private String description; // 用例描述  默认 null
+    private String description;
 
-    private JSONArray environmentIds; // 环境列表 列表形式 uuid
+    private JSONArray environmentIds;
 
-    private JSONObject commonParam; // 配置信息 包含 导入函数【函数uuid】，导入公参，公用Header，公用Proxy
+    private String system;
 
-    private Long createTime;//创建时间
+    private JSONObject commonParam;
 
-    private Long updateTime; //更新时间
+    private Long createTime;
 
-    private String createUser; //创建者
+    private Long updateTime;
 
-    private String updateUser;//更新者
+    private String createUser;
 
-    private String status; // 用例状态
+    private String updateUser;
 
-    private List<CaseApiRequest> caseApis; //API用例列表
+    private String status;
+
+    private List<CaseApiRequest> caseApis;
 
     private List<CaseWebRequest> caseWebs;
+
+    private List<CaseAppRequest> caseApps;
 }

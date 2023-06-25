@@ -10,6 +10,8 @@ public class Collection implements Serializable {
 
     private String name;
 
+    private String deviceId;
+
     private String versionId;
 
     private String description;
@@ -23,5 +25,7 @@ public class Collection implements Serializable {
     private String createUser;
 
     private String updateUser;
+
+    private Integer status;
 
 }
