@@ -28,7 +28,7 @@
                   <el-input size="mini" style="width: 85%" v-model="scope.row.description" placeholder="请输入步骤描述" @change="scope.row.edit=false"/>
                   <i class="el-icon-success" @click="scope.row.edit=false"/>
                 </div>
-              <span v-else>{{scope.row.description}} <i class="el-icon-edit" @click="scope.row.edit=true"/></span>
+              <span v-else>{{scope.row.description}} <i class="el-icon-edit" @click="changeInDesc(scope.row)"/></span>
             </template>
         </el-table-column>
         <el-table-column label="操作" width="200px">
@@ -203,7 +203,6 @@ export default {
                     apiMethod: this.selections[i].method,
                     apiName: this.selections[i].name,
                     apiPath: this.selections[i].path,
-                    edit: true,
                     description: this.selections[i].description,
                 }
                 this.caseForm.caseApis.push(caseApi);
@@ -353,6 +352,9 @@ export default {
                         if(this.$route.params.type === 'copy'){
                           this.$router.push({path: '/caseCenter/caseManage'});
                         }
+                        else if(this.$route.params.type === 'add'){
+                          this.$router.push({path: '/caseCenter/caseManage'});
+                        }
                     });
                 }else{
                     return false;
@@ -409,10 +411,10 @@ export default {
             // 判断前后置脚本是否为关闭状态
             this.isCodeEdit = flag === true;
         },
-        clickable(row){
-            // 判断前后置脚本是否为关闭状态
-            console.log(row)
-          console.log('能够点击')
+        changeInDesc(row){
+            // 将编辑按钮置为开启状态
+            this.$set(row, 'edit', true);
+
         }
     }
 }
