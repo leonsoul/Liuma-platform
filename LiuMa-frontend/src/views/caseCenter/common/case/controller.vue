@@ -181,7 +181,7 @@
                             <el-input-number size="small" style="width: 150px" v-model="loop.timeout" label="超时时间" step-strictly :step="10" :min="0"/>  ms
                         </el-form-item>
                     </el-col>
-                </el-row> 
+                </el-row>
             </el-form>
         </div>
         <!-- 条件控制器条件编辑 -->
@@ -283,6 +283,8 @@ export default {
               {label: "app 端项目", value: "110001"},
               {label: "Android Piufoto", value: "110003"},
               {label: "IOS Piufoto", value: "110102"},
+              {label: "Android 新喔图闪传", value: "110004"},
+              {label: "IOS 新喔图闪传", value: "110004"},
             ],
             showType: null,
             code: "",

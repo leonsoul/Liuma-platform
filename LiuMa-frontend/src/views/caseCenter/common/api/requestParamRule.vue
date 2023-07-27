@@ -21,7 +21,7 @@
             </el-table-column>
             <el-table-column label="参数范围" prop="random" min-width="120px">
                 <template slot-scope="scope">
-                    <el-input size="small" style="width: 85%" placeholder="例如[1, 3)" v-model="ruleForm[scope.$index].random" :disabled="ruleForm[scope.$index].type==='Boolean' | ruleForm[scope.$index].type==='None'"/>
+                    <el-input size="small" style="width: 85%" placeholder="例如[1, 3)" v-model="ruleForm[scope.$index].random" :disabled="ruleForm[scope.$index].type==='Boolean' || ruleForm[scope.$index].type==='None'"/>
                     <el-tooltip content="数字型输入大小上下限, 字符串输入长度上下限, []表示包含边界值, ()表示不包含边界值." placement="bottom">
                         <i class="el-icon-info"></i>
                     </el-tooltip>
@@ -67,17 +67,21 @@ export default {
                 {label: '布尔型', value: 'Boolean'},
                 {label: '字符串(普通)', value: 'String'},
                 {label: '字符串(特殊)', value: 'SpecialStr'},
+                {label: '字符串(数字)', value: 'StringInt'},
                 {label: '不校验', value: 'None'}
             ]
         }
         },
         created() {
+
         },
         methods: {
             remove(index){
+                console.log(this.ruleForm)
                 this.ruleForm.splice(index, 1);
             },
             changeValue(val, form){
+              console.log(this.ruleForm)
                 if(val){
                     form.value = null;
                 }else{

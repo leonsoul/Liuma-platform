@@ -37,11 +37,12 @@ public class CaseGenerateService {
 
     private static final Map<String, Object> ParamTypeMap = new HashMap<String, Object>() {{
         put("Int", 100); put("Float", 0.1); put("Boolean", true); // 不同类型参数默认值
-        put("String", "test"); put("SpecialStr", "&test@");
+        put("String", "test"); put("SpecialStr", "&test@"); put("StringInt", "100");
     }};
 
     private static final Map<String, Object[]> ParamRequiredMap = new HashMap<String, Object[]>() {{
         put("must", new Object[]{"逆向", true, "不能空传", null});    // 用例类型 是否删除该字段 规则描述 字段值
+        put("是", new Object[]{"逆向", true, "不能空传", null});
         put("empty", new Object[]{"正向", false, "可以传空", ""});
         put("null", new Object[]{"正向", false, "可以传null", null});
         put("lost", new Object[]{"正向", true, "可以空传", null});
@@ -273,7 +274,8 @@ public class CaseGenerateService {
         ApiParamVerifyDTO verifyDTO = new ApiParamVerifyDTO();
         verifyDTO.setName(name);
         verifyDTO.setDirection(rule[0].toString());
-        verifyDTO.setType(type.equals("SpecialStr")? "String": type);
+        verifyDTO.setType(type.equals("SpecialStr")? "String": type);   // 将特殊标识类型的字符串转为String类型
+        verifyDTO.setType(type.equals("StringInt")? "String": type);
         verifyDTO.setDelete((Boolean) rule[1]);
         verifyDTO.setDescription(String.format("【%s用例】校验%s%s类型字段%s必填性校验为:%s",
                 rule[0].toString(), replaceType, type, name, rule[2].toString()));
@@ -283,10 +285,10 @@ public class CaseGenerateService {
     }
 
     private List<ApiParamVerifyDTO> getParamVerifyListWithType(String replaceType, String name, String type){
-        // 生成字段类型校验
+        // 生成字段类型校验，生成其他类型的数值
         List<ApiParamVerifyDTO> verifyDTOS = new ArrayList<>();
         for(String t: ParamTypeMap.keySet()){
-            if (t.equals(type) || (type.equals("SpecialStr") && t.equals("String"))) {
+            if (t.equals(type) || (type.equals("SpecialStr") && t.equals("String") && type.equals("StringInt")) ) {
                 continue;
             }
             ApiParamVerifyDTO verifyDTO = new ApiParamVerifyDTO();
@@ -318,6 +320,8 @@ public class CaseGenerateService {
             }else if(type.equals("SpecialStr")){
                 int value = (int) ((long) randomRule[2]);
                 verifyDTO.setValue(StringUtils.randomSpecialString(value));
+            }else if(type.equals("StringInt")){
+                verifyDTO.setValue(randomRule[2].toString());
             }else {
                 verifyDTO.setType(type);
                 verifyDTO.setValue(randomRule[2]);
