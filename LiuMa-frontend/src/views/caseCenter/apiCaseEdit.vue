@@ -24,11 +24,11 @@
         </el-table-column>
         <el-table-column label="步骤描述" min-width="200px">
             <template v-slot="scope">
-                <div v-if="scope.row.edit==true" >
+                <div v-if="scope.row.edit===true" >
                   <el-input size="mini" style="width: 85%" v-model="scope.row.description" placeholder="请输入步骤描述" @change="scope.row.edit=false"/>
                   <i class="el-icon-success" @click="scope.row.edit=false"/>
                 </div>
-                <span v-else>{{scope.row.description}} <i class="el-icon-edit"  @click="scope.row.edit=true"/></span>
+              <span v-else>{{scope.row.description}} <i class="el-icon-edit" @click="scope.row.edit=true"/></span>
             </template>
         </el-table-column>
         <el-table-column label="操作" width="200px">
@@ -203,7 +203,8 @@ export default {
                     apiMethod: this.selections[i].method,
                     apiName: this.selections[i].name,
                     apiPath: this.selections[i].path,
-                    description: this.selections[i].description
+                    edit: true,
+                    description: this.selections[i].description,
                 }
                 this.caseForm.caseApis.push(caseApi);
             }
@@ -257,10 +258,12 @@ export default {
                 this.editCaseApiVisible = true;
             }
             this.caseApiIndexCopy = index
-            this.caseApiFormCopy = JSON.parse(JSON.stringify(this.caseApiForm))
+            this.caseApiFormCopy = JSON.parse(JSON.stringify(caseApi))
+            console.log(this.caseApiFormCopy)
         },
         confirmApiCancel(){
             // 取消编辑接口
+            console.log(this.caseApiFormCopy)
             this.$set( this.caseForm.caseApis,this.caseApiIndexCopy,JSON.parse(JSON.stringify(this.caseApiFormCopy)));
             this.editCaseApiVisible = false;
         },
@@ -405,6 +408,11 @@ export default {
         editCodeCharge(flag){
             // 判断前后置脚本是否为关闭状态
             this.isCodeEdit = flag === true;
+        },
+        clickable(row){
+            // 判断前后置脚本是否为关闭状态
+            console.log(row)
+          console.log('能够点击')
         }
     }
 }
