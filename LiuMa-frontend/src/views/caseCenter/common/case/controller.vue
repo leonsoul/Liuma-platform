@@ -284,7 +284,7 @@ export default {
               {label: "Android Piufoto", value: "110003"},
               {label: "IOS Piufoto", value: "110102"},
               {label: "Android 新喔图闪传", value: "110004"},
-              {label: "IOS 新喔图闪传", value: "110004"},
+              {label: "IOS 新喔图闪传", value: "110103"},
             ],
             showType: null,
             code: "",
