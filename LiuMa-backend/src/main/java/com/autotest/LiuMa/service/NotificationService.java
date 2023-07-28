@@ -1,17 +1,21 @@
 package com.autotest.LiuMa.service;
 
+import cn.hutool.http.HttpUtil;
 import com.autotest.LiuMa.common.constants.TaskType;
 import com.autotest.LiuMa.database.domain.Notification;
 import com.autotest.LiuMa.database.domain.User;
-import com.autotest.LiuMa.database.mapper.*;
+import com.autotest.LiuMa.database.mapper.NotificationMapper;
+import com.autotest.LiuMa.database.mapper.ReportMapper;
+import com.autotest.LiuMa.database.mapper.UserMapper;
 import com.autotest.LiuMa.dto.ReportDTO;
 import com.autotest.LiuMa.dto.TaskDTO;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.List;
 import java.util.UUID;
-import cn.hutool.http.HttpUtil;
 
 @Service
 public class NotificationService {
@@ -53,8 +57,9 @@ public class NotificationService {
         return notificationMapper.getNotificationList(projectId, condition);
     }
 
-    public void sendNotification(Notification notification, TaskDTO task){
+    public void sendNotification(Notification notification, TaskDTO task) throws UnknownHostException {
         String taskType;
+        InetAddress localhost = InetAddress.getLocalHost();
         if(task.getType().equals(TaskType.RUN.toString())){
             taskType = "手工执行";
         }else {
@@ -63,6 +68,7 @@ public class NotificationService {
         ReportDTO report = reportMapper.getReportDetail(task.getReportId());
         User user = userMapper.getUserInfo(task.getCreateUser());
         Long during = (report.getEndTime() - report.getStartTime()) / 1000;
+
         // todo 修改为对应的路径
         String params = notification.getParams().
                 replace("{reportTitle}", report.getName()).
@@ -74,7 +80,7 @@ public class NotificationService {
                 replace("{caseError}", report.getErrorCount().toString()).
                 replace("{successPercent}", report.getPassRate()).
                 replace("{executeTime}", during +"S").
-                replace("{reportUrl}", "http://1.117.81.152/#/report/testReport/detail/" +report.getId());
+                replace("{reportUrl}", "http://" +localhost+"/#/report/testReport/detail/" +report.getId());
         // 发送
 //        {"at": {"isAtAll": true}, "msgtype": "markdown",
 //        "markdown": {"text": "#### {reportTitle}\n##### •

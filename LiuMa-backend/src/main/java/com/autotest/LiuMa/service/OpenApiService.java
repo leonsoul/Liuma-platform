@@ -255,7 +255,8 @@ public class OpenApiService {
                     return; // 通知禁用不通知
                 }
                 try {
-                    notificationService.sendNotification(notification, task);   // 发送通知
+                    // 发送通知
+                    notificationService.sendNotification(notification, task);
                 }catch (Exception ignored){
                 }
             }
@@ -270,7 +271,7 @@ public class OpenApiService {
 
     public void uploadScreenshot(EngineRequest request) {
         try{
-            if(cloudStorage.equals("on")){
+            if("on".equals(cloudStorage)){
                 UploadUtils.uploadImageB64(request.getFileName(), request.getBase64String(), uploadUrl, imageBucket, ak, sk);
             }else {
                 String fileName = request.getFileName();
