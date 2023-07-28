@@ -53,6 +53,7 @@ public class DatabaseService {
         List<DatabaseDTO> databaseDTOS = databaseMapper.getDatabaseList(environmentId);
         for(DatabaseDTO databaseDTO: databaseDTOS){
             DBConnectInfo info = JSONObject.parseObject(databaseDTO.getConnectInfo(), DBConnectInfo.class);
+            info.setPassword("***");
             databaseDTO.setInfo(info);
         }
         return databaseMapper.getDatabaseList(environmentId);

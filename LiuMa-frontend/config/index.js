@@ -11,16 +11,16 @@ module.exports = {
         assetsPublicPath: '/',
         proxyTable: {
             '/autotest': {
-                // target: 'http://127.0.0.1:9998', // 你请求的第三方接口
-                target: 'http://1.117.81.152:9998', // 你请求的第三方接口
+                target: 'http://127.0.0.1:9998', // 你请求的第三方接口
+                // target: 'http://192.168.88.31:9998', // 你请求的第三方接口
                 changeOrigin: true,
                 pathRewrite: { // 路径重写，
                     '^/autotest': '/autotest'
                 }
             },
             '/openapi': {
-                // target: 'http://127.0.0.1:9998', // 你请求的第三方接口
-                target: 'http://1.117.81.152:9998', // 你请求的第三方接口
+                target: 'http://127.0.0.1:9998', // 你请求的第三方接口
+                // target: 'http://192.168.88.31:9998', // 你请求的第三方接口
                 changeOrigin: true,
                 pathRewrite: { // 路径重写，
                     '^/openapi': '/openapi'
@@ -28,7 +28,8 @@ module.exports = {
             },
             '/websocket': {
                 target: 'http://127.0.0.1:8080', // 你请求的第三方接口
-                changeOrigin: true, 
+                // target: 'http://192.168.88.31:9998', // 你请求的第三方接口
+                changeOrigin: true,
                 pathRewrite: { // 路径重写，
                     '^/websocket': '/websocket'
                 }
