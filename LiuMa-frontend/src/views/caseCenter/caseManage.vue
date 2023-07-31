@@ -277,7 +277,7 @@ export default {
                 this.$router.push({path: '/caseCenter/caseManage/apiCase/add'});
             }else if (this.newCaseType == "WEB"){
                 this.$router.push({path: '/caseCenter/caseManage/webCase/add'});
-            }else if (this.newCaseType == "ANDROID"){ 
+            }else if (this.newCaseType == "ANDROID"){
                 this.$router.push({path: '/caseCenter/caseManage/appCase/android/add'});
             }else if (this.newCaseType == "APPLE"){
                 this.$router.push({path: '/caseCenter/caseManage/appCase/apple/add'});
@@ -313,11 +313,11 @@ export default {
         },
         runCase(row){
             // 用例调试
-            this.runForm.engineId = 'system';
+            // this.runForm.engineId = null;
             this.runForm.environmentId = null;
             this.runForm.deviceId = null;
             let environmentIds = JSON.parse(row.environmentIds);
-            
+
             this.runForm.sourceType = "case";
             this.runForm.sourceId = row.id;
             this.runForm.sourceName = row.name;

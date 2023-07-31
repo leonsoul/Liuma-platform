@@ -64,7 +64,7 @@
     <!-- 分页组件 -->
     <Pagination v-bind:child-msg="pageparam" @callFather="collectionCallFather"/>
     <!-- 集合执行选择引擎和环境 -->
-    <run-form :runForm="runForm" :runVisible="runVisible" :showEnvironment="showEnvironment" :showDevice="showDevice" 
+    <run-form :runForm="runForm" :runVisible="runVisible" :showEnvironment="showEnvironment" :showDevice="showDevice"
         :deviceSystem="deviceSystem" @closeRun="closeRun" @run="run($event)"/>
   </div>
 </template>
@@ -217,7 +217,7 @@ export default {
                     this.deviceSystem = "apple";
                 }
 
-                this.runForm.engineId = 'system';
+                // this.runForm.engineId = 'system';
                 this.runForm.environmentId = null;
                 this.runForm.deviceId = null;
                 this.runForm.sourceType = "collection";

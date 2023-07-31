@@ -3,7 +3,7 @@
 */
 <template>
     <div>
-        <el-dialog title="执行结果" :visible.sync="resultVisable" width="650px" destroy-on-close :close-on-click-modal="false" @close="cancel">
+        <el-dialog title="执行结果" :visible="resultVisable" width="650px" destroy-on-close :close-on-click-modal="false" @close="cancel">
             <el-row :gutter="40" style="margin-top:-20px">
                 <el-form>
                 <el-col :span="12">

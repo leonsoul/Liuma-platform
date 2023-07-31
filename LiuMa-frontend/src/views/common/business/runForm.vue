@@ -4,7 +4,7 @@
 <template>
     <div>
         <!-- 用例调试选择引擎和环境 -->
-        <el-dialog title="执行选项" :visible.sync="runVisible" width="600px" destroy-on-close @close="cancel">
+        <el-dialog title="执行选项" :visible="runVisible" width="600px" destroy-on-close @close="cancel">
             <el-form label-width="120px" style="padding-right: 30px;" :model="runForm" :rules="rules" ref="runForm">
                 <el-form-item v-if="showEnvironment" label="执行环境" prop="environmentId">
                     <el-select size="small" style="width: 90%" v-model="runForm.environmentId" filterable placeholder="请选择执行环境">
@@ -100,10 +100,6 @@ export default {
             let url = "/autotest/engine/all/" + this.$store.state.projectId;
             this.$get(url, response => {
                 this.engines = response.data;
-                //  如果获得了引擎，将结果中的第一个作为默认引擎。
-                if(this.engines.length > 0){
-                    this.runForm.engineId=this.engines[0].id;
-                }
             });
 
         },
