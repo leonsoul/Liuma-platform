@@ -47,19 +47,19 @@ CREATE TABLE `engine` (
 	`update_time` bigint(13)  NOT NULL COMMENT '更新时间',
     PRIMARY KEY (`id`), UNIQUE(`project_id`, `name`), INDEX(`project_id`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE utf8mb4_general_ci;
-
-insert into `engine` (id, name, engine_type, secret, status, last_heartbeat_time, project_id, update_user, create_user, create_time, update_time)
-VALUES (REPLACE(UUID(), '-', ''), '系统引擎4', 'system', REPLACE(UUID(), '-', ''), 'offline', NULL, 'system', 'system_admin_user', 'system_admin_user',
-REPLACE(unix_timestamp(current_timestamp(3)),'.',''), REPLACE(unix_timestamp(current_timestamp(3)),'.',''));
-
-insert into `engine` (id, name, engine_type, secret, status, last_heartbeat_time, project_id, update_user, create_user, create_time, update_time)
-VALUES (REPLACE(UUID(), '-', ''), '系统引擎3', 'system', REPLACE(UUID(), '-', ''), 'offline', NULL, 'system', 'system_admin_user', 'system_admin_user',
-REPLACE(unix_timestamp(current_timestamp(3)),'.',''), REPLACE(unix_timestamp(current_timestamp(3)),'.',''));
-
-insert into `engine` (id, name, engine_type, secret, status, last_heartbeat_time, project_id, update_user, create_user, create_time, update_time)
-VALUES (REPLACE(UUID(), '-', ''), '系统引擎2', 'system', REPLACE(UUID(), '-', ''), 'offline', NULL, 'system', 'system_admin_user', 'system_admin_user',
-REPLACE(unix_timestamp(current_timestamp(3)),'.',''), REPLACE(unix_timestamp(current_timestamp(3)),'.',''));
-
-insert into `engine` (id, name, engine_type, secret, status, last_heartbeat_time, project_id, update_user, create_user, create_time, update_time)
-VALUES (REPLACE(UUID(), '-', ''), '系统引擎1', 'system', REPLACE(UUID(), '-', ''), 'offline', NULL, 'system', 'system_admin_user', 'system_admin_user',
-REPLACE(unix_timestamp(current_timestamp(3)),'.',''), REPLACE(unix_timestamp(current_timestamp(3)),'.',''));
+--
+-- insert into `engine` (id, name, engine_type, secret, status, last_heartbeat_time, project_id, update_user, create_user, create_time, update_time)
+-- VALUES (REPLACE(UUID(), '-', ''), '系统引擎4', 'system', REPLACE(UUID(), '-', ''), 'offline', NULL, 'system', 'system_admin_user', 'system_admin_user',
+-- REPLACE(unix_timestamp(current_timestamp(3)),'.',''), REPLACE(unix_timestamp(current_timestamp(3)),'.',''));
+--
+-- insert into `engine` (id, name, engine_type, secret, status, last_heartbeat_time, project_id, update_user, create_user, create_time, update_time)
+-- VALUES (REPLACE(UUID(), '-', ''), '系统引擎3', 'system', REPLACE(UUID(), '-', ''), 'offline', NULL, 'system', 'system_admin_user', 'system_admin_user',
+-- REPLACE(unix_timestamp(current_timestamp(3)),'.',''), REPLACE(unix_timestamp(current_timestamp(3)),'.',''));
+--
+-- insert into `engine` (id, name, engine_type, secret, status, last_heartbeat_time, project_id, update_user, create_user, create_time, update_time)
+-- VALUES (REPLACE(UUID(), '-', ''), '系统引擎2', 'system', REPLACE(UUID(), '-', ''), 'offline', NULL, 'system', 'system_admin_user', 'system_admin_user',
+-- REPLACE(unix_timestamp(current_timestamp(3)),'.',''), REPLACE(unix_timestamp(current_timestamp(3)),'.',''));
+--
+-- insert into `engine` (id, name, engine_type, secret, status, last_heartbeat_time, project_id, update_user, create_user, create_time, update_time)
+-- VALUES (REPLACE(UUID(), '-', ''), '系统引擎1', 'system', REPLACE(UUID(), '-', ''), 'offline', NULL, 'system', 'system_admin_user', 'system_admin_user',
+-- REPLACE(unix_timestamp(current_timestamp(3)),'.',''), REPLACE(unix_timestamp(current_timestamp(3)),'.',''));

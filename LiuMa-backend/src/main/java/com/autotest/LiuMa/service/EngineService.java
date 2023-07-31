@@ -84,10 +84,10 @@ public class EngineService {
 
     public List<Engine> getAllCustomEngine(String projectId){
         List<Engine> engineList = engineMapper.getAllCustomEngine(projectId);
-        Engine engine = new Engine();
-        engine.setId(EngineType.SYSTEM.toString());
-        engine.setName("系统引擎");
-        engineList.add(0, engine);
+//        Engine engine = new Engine();
+//        engine.setId(EngineType.SYSTEM.toString());
+//        engine.setName("系统引擎");
+//        engineList.add(0, engine);
         return engineList;
     }
 
