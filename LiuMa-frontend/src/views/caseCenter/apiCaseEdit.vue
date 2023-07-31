@@ -258,11 +258,11 @@ export default {
             }
             this.caseApiIndexCopy = index
             this.caseApiFormCopy = JSON.parse(JSON.stringify(caseApi))
-            console.log(this.caseApiFormCopy)
+            // console.log(this.caseApiFormCopy)
         },
         confirmApiCancel(){
             // 取消编辑接口
-            console.log(this.caseApiFormCopy)
+            // console.log(this.caseApiFormCopy)
             this.$set( this.caseForm.caseApis,this.caseApiIndexCopy,JSON.parse(JSON.stringify(this.caseApiFormCopy)));
             this.editCaseApiVisible = false;
         },
@@ -327,7 +327,7 @@ export default {
                         data.id = "";
                     }
                     this.caseForm = data;
-                    console.log(this.caseForm.caseApis)
+                    // console.log(this.caseForm.caseApis)
                 });
             }
         },
@@ -344,7 +344,7 @@ export default {
                     let url = '/autotest/case/save';
                     // console.log(this.caseForm)
                     this.$post(url, this.caseForm, response =>{
-                      console.log(response)
+                      // console.log(response)
                         if(response.status===0){
                           this.$message.success("保存成功");
                         }
@@ -363,7 +363,7 @@ export default {
         },
         debugCase(){
             // 用例调试
-            this.runForm.engineId = 'system';
+            // this.runForm.engineId = 'system';
             if(this.caseForm.environmentIds.length > 0){
                 this.runForm.environmentId = this.caseForm.environmentIds[0];
             }
@@ -373,7 +373,7 @@ export default {
             this.runForm.taskType = "debug";
             this.runForm.projectId = this.$store.state.projectId;
             this.runForm.debugData = JSON.parse(JSON.stringify(this.caseForm));
-
+            // 增加禁用逻辑
             for(let i=0 ; i<this.runForm.debugData.caseApis.length; i++){
                 if(this.runForm.debugData.caseApis[i].isBan === true){
                   // console.log(this.runForm.debugData.caseApis[i]);
@@ -381,7 +381,6 @@ export default {
                   i--;
               }
             }
-            // console.log(this.runForm.debugData.caseApis);
             this.runVisible = true;
         },
         closeRun(){
@@ -399,7 +398,7 @@ export default {
             this.resultVisable = false;
         },
         getUseFunction(data){
-          console.log(data)
+          // console.log(data)
           this.FunctionList = data
         },
         callbackUseFunctionDetail(data){

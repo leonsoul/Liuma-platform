@@ -1,6 +1,6 @@
 /**
 * 选择执行选项
-*/ 
+*/
 <template>
     <div>
         <!-- 用例调试选择引擎和环境 -->
@@ -73,6 +73,7 @@ export default {
                 this.getDevice();
             }
             this.getEngine();
+
         }
     },
     watch: {
@@ -99,7 +100,12 @@ export default {
             let url = "/autotest/engine/all/" + this.$store.state.projectId;
             this.$get(url, response => {
                 this.engines = response.data;
+                //  如果获得了引擎，将结果中的第一个作为默认引擎。
+                if(this.engines.length > 0){
+                    this.runForm.engineId=this.engines[0].id;
+                }
             });
+
         },
         getDevice(){
             let url = "/autotest/device/" + this.deviceSystem + "/list/" + this.$store.state.projectId;
