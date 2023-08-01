@@ -145,11 +145,15 @@ export default {
     created() {
         this.$root.Bus.$emit('initBread', ["用例中心", "用例管理"])
         this.getTree()
+        if(this.$store.moduleId){
+            this.searchForm.moduleId = this.$store.moduleId;
+        }
         this.getdata(this.searchForm)
     },
     methods: {
         // 点击模块
         clickModule(data){
+            this.$store.moduleId = data.id;
             this.searchForm.moduleId = data.id;
             this.getdata(this.searchForm);
         },

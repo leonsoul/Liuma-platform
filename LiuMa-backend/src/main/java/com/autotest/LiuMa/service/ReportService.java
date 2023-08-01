@@ -1,6 +1,7 @@
 package com.autotest.LiuMa.service;
 
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.parser.Feature;
 import com.autotest.LiuMa.common.constants.ReportStatus;
 import com.autotest.LiuMa.database.domain.Report;
 import com.autotest.LiuMa.database.mapper.*;
@@ -64,7 +65,7 @@ public class ReportService {
         }
         String response = report.substring(report.indexOf("<br><b>响应体: ")+12, report.indexOf("</b><br><br>"));
         try{
-            result = JSONObject.parseObject(response);
+            result = JSONObject.parseObject(response, Feature.OrderedField);
         }catch (Exception e){
             return result;
         }
