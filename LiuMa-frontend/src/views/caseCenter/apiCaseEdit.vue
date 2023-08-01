@@ -11,7 +11,7 @@
     <el-table :data="caseForm.caseApis" row-key="id" class="sort-table" size="small">
         <el-table-column label="" width="60px">
             <template>
-                <i class="iconfont icon-paixu" @mousedown="rowDrop" style="font-size: 24px"/>
+                <i class="iconfont icon-paixu" style="font-size: 24px"/>
             </template>
         </el-table-column>
         <el-table-column label="序号" prop="index" width="100px">
@@ -171,20 +171,32 @@ export default {
         this.$root.Bus.$emit('initBread', ["用例中心", "接口用例"]);
         this.getDetail(this.$route.params);
     },
+    async mounted() {
+      //行拖拽方法
+      this.rowDrop();
+    },
     methods: {
+
         // 行拖拽
         rowDrop () {
             // 此时找到的元素是要拖拽元素的父容器
-            const tbody = document.querySelector('.sort-table tbody');
+            const tbody = document.querySelector('.sort-table tbody ');
             const _this = this;
-            Sortable.create(tbody, {
+            const sortable = Sortable.create(tbody, {
+                draggable: '.el-table__row',
                 //  指定父元素下可被拖拽的子元素
-                draggable: ".el-table__row",
-                onEnd ({ newIndex, oldIndex }) {
+                onEnd ({ item, newIndex, oldIndex }) {
+                    // item.draggable = false;
+                    // sortable.option('disabled', true);
                     const currRow = _this.caseForm.caseApis.splice(oldIndex, 1)[0];
                     _this.caseForm.caseApis.splice(newIndex, 0, currRow);
                     _this.sortCaseApi();
-                }
+                },
+                onStart(){
+                },
+              handle: '.el-table__row td:nth-child(1)'
+
+
             });
         },
         // 重新排序
