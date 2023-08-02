@@ -5,7 +5,7 @@
   <div>
     <page-header title="用例编辑" :showDebug="true" :cancel="cancelAdd" :debug="debugCase" :save="saveAdd"/>
     <el-form ref="caseForm" :rules="rules" :model="caseForm" label-width="90px">
-        <base-info :caseForm="caseForm" :applications=[] v-on:getUseFunction="getUseFunction" v-on:callbackUseFunctionDetail="callbackUseFunctionDetail" />
+        <base-info :caseForm="caseForm" :applications=[] v-on:getUseFunction="getUseFunction" v-on:callbackUseFunctionDetail="callbackUseFunctionDetail" v-on:callbackUseParamDetail="callbackUseParamDetail"/>
     <p class="tip">接口请求</p>
     <el-form-item style="margin-left:-80px;" prop="caseApis"/>
     <el-table :data="caseForm.caseApis" row-key="id" class="sort-table" size="small">
@@ -66,16 +66,16 @@
                     <request-header :reqHeader="caseApiForm.header" style="width: 100%"/>
                 </el-tab-pane>
                 <el-tab-pane label="请求体" name="body">
-                    <request-body :caseForm="caseForm" :reqBody="caseApiForm.body" :functionListDetail="functionListDetail"  style="width: 100%"/>
+                    <request-body :caseForm="caseForm" :reqBody="caseApiForm.body" :supplementationList="supplementationList"  style="width: 100%"/>
                 </el-tab-pane>
                 <el-tab-pane label="QUERY参数" name="query">
-                    <request-query :reqQuery="caseApiForm.query" :reqBody="caseApiForm.body" style="width: 100%"/>
+                    <request-query :reqQuery="caseApiForm.query" :reqBody="caseApiForm.body" :supplementationList="supplementationList" style="width: 100%"/>
                 </el-tab-pane>
                 <el-tab-pane label="REST参数" name="rest">
-                    <request-rest :reqRest="caseApiForm.rest" style="width: 100%"/>
+                    <request-rest :reqRest="caseApiForm.rest" :supplementationList="supplementationList" style="width: 100%"/>
                 </el-tab-pane>
                 <el-tab-pane label="响应断言" name="assertion">
-                    <assertion :assertion="caseApiForm.assertion" :apiId="caseApiForm.apiId" style="width: 100%"/>
+                    <assertion :assertion="caseApiForm.assertion" :apiId="caseApiForm.apiId" :supplementationList="supplementationList" style="width: 100%"/>
                 </el-tab-pane>
                 <el-tab-pane label="关联取值" name="relation">
                     <relation :relation="caseApiForm.relation" :apiId="caseApiForm.apiId" style="width: 100%"/>
@@ -161,9 +161,11 @@ export default {
                 caseApis: [{ required: true, message: '请至少添加一条接口请求', trigger: 'blur' }]
             },
             FunctionList: [],
+            supplementationList :[],
             isShow: true,
             isCodeEdit: false,
             functionListDetail: [],
+            paramListDetail: [],
         }
     },
     created() {
@@ -174,6 +176,32 @@ export default {
     async mounted() {
       //行拖拽方法
       this.rowDrop();
+    },
+    watch:{
+        "caseForm.commonParam.functions":{
+          handler(){
+
+            this.addSupplementationList('function')
+          }
+        },
+        "functionListDetail":{
+          handler(){
+
+            this.addSupplementationList('function')
+          }
+        },
+        "caseForm.commonParam.params":{
+          handler(){
+
+            this.addSupplementationList('param')
+          }
+        },
+        "paramListDetail": {
+            handler(){
+
+              this.addSupplementationList('param')
+          }
+        }
     },
     methods: {
 
@@ -270,11 +298,9 @@ export default {
             }
             this.caseApiIndexCopy = index
             this.caseApiFormCopy = JSON.parse(JSON.stringify(caseApi))
-            // console.log(this.caseApiFormCopy)
         },
         confirmApiCancel(){
             // 取消编辑接口
-            // console.log(this.caseApiFormCopy)
             this.$set( this.caseForm.caseApis,this.caseApiIndexCopy,JSON.parse(JSON.stringify(this.caseApiFormCopy)));
             this.editCaseApiVisible = false;
         },
@@ -289,7 +315,6 @@ export default {
             let caseApi = JSON.parse(JSON.stringify(this.caseForm.caseApis[index]))
             caseApi.id = getUUID();
             caseApi.index = this.caseForm.caseApis.length+1;
-            // console.log(this.caseForm.caseApis);
             this.caseForm.caseApis.push(caseApi);
         },
         banCaseApi(index){
@@ -299,6 +324,47 @@ export default {
             else{
               this.$set( this.caseForm.caseApis[index],'isBan',true);
             }
+        },
+        addSupplementationList(type){
+          // 增加输入时的辅助输入，主要是用于token的输入
+          let _this = this;
+          if(type === 'relation'){
+            for(let item of _this.caseForm.caseApis){
+              if(item.relation){
+                for(let relationName of item.relation){  // 将接口存在的关联变量加入的候补输入中
+                  let newRelationName = {'name':"{{"+ relationName.name+"}}"}
+                  if(!_this.supplementationList.some(function (supplementation){
+                    return supplementation.name === newRelationName.name
+                  }))
+                    _this.supplementationList.splice(_this.supplementationList.length, 0, newRelationName);
+                }
+              }
+            }
+          }
+          else if(type==='param'){
+            for(let commonParam of _this.caseForm.commonParam.params){
+              for(let paramDetail of _this.paramListDetail){
+                if(commonParam === paramDetail.id){  // 将添加的公参加入的候补输入中
+                  let newParamName = {'name': "{{"+paramDetail.name+"}}"}
+                  if(!_this.supplementationList.some(function (supplementation){
+                    return supplementation.name === newParamName.name
+                  })){ _this.supplementationList.splice(_this.supplementationList.length, 0, newParamName);}
+                }
+              }
+            }
+          }
+          else if(type==='function'){
+            for(let commonFunction of _this.caseForm.commonParam.functions){
+              for(let functionDetail of _this.functionListDetail){
+                if(commonFunction === functionDetail.id){  // 将添加的自定义函数加入的候补输入中
+                  let newFunctionName = {'name': functionDetail.expression}
+                  if(!_this.supplementationList.some(function (supplementation){
+                    return supplementation.name === newFunctionName.name
+                  })){ _this.supplementationList.splice(_this.supplementationList.length, 0, newFunctionName);}
+                }
+              }
+            }
+          }
         },
         getDetail(param){
             if (param.caseId){  // 编辑
@@ -339,10 +405,11 @@ export default {
                         data.id = "";
                     }
                     this.caseForm = data;
-                    // console.log(this.caseForm.caseApis)
+                    this.addSupplementationList('relation');
                 });
             }
         },
+
         cancelAdd(){
             this.$router.push({path: '/caseCenter/caseManage'})
         },
@@ -354,18 +421,20 @@ export default {
                         this.caseForm.caseApis[i].index = i+1;
                     }
                     let url = '/autotest/case/save';
-                    // console.log(this.caseForm)
                     this.$post(url, this.caseForm, response =>{
-                      // console.log(response)
                         if(response.status===0){
                           this.$message.success("保存成功");
                         }
+
                         // 如果是复用过来的用例的话，点击保存返回到用例列表页面，如果是编辑、新增的话，仍然停留在编辑页。
                         if(this.$route.params.type === 'copy'){
                           this.$router.push({path: '/caseCenter/caseManage'});
                         }
                         else if(this.$route.params.type === 'add'){
                           this.$router.push({path: '/caseCenter/caseManage'});
+                        }
+                        else{
+                          this.addSupplementationList('relation')
                         }
                     });
                 }else{
@@ -388,7 +457,6 @@ export default {
             // 增加禁用逻辑
             for(let i=0 ; i<this.runForm.debugData.caseApis.length; i++){
                 if(this.runForm.debugData.caseApis[i].isBan === true){
-                  // console.log(this.runForm.debugData.caseApis[i]);
                   this.runForm.debugData.caseApis.splice(i,1);
                   i--;
               }
@@ -410,13 +478,15 @@ export default {
             this.resultVisable = false;
         },
         getUseFunction(data){
-          // console.log(data)
           this.FunctionList = data
         },
         callbackUseFunctionDetail(data){
           // 获得子组件传递过来的所有的自定义函数信息
-          // console.log('callbackUseFunctionDetail拿到的数据',data)
           this.functionListDetail = data
+        },
+        callbackUseParamDetail(data){
+          // 获得子组件传递过来的所有的自定义函数信息
+          this.paramListDetail = data
         },
         editCodeCharge(flag){
             // 判断前后置脚本是否为关闭状态

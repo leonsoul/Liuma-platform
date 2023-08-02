@@ -1,6 +1,6 @@
 /**
 * 请求Query参数
-*/ 
+*/
 <template>
     <div>
         <el-table :data="reqQuery">
@@ -18,7 +18,10 @@
             </el-table-column>
             <el-table-column label="QUERY参数值" prop="value">
                 <template slot-scope="scope">
-                    <el-input size="small" style="width: 90%" placeholder="请输入QUERY参数值" v-model="reqQuery[scope.$index].value"/>
+                  <!--非文件时输入框 修改为带上识别的输入框，如果导入过自定义函数，就能输入{ 来自动生成识别-->
+                  <el-autocomplete  size="small" style="width: 90%" placeholder="请输入QUERY参数值" v-model="reqQuery[scope.$index].value"
+                                   :fetch-suggestions="querySearch"  @select="handleSelect" :trigger-on-focus="false"/>
+<!--                    <el-input size="small" style="width: 90%" placeholder="请输入QUERY参数值" v-model="reqQuery[scope.$index].value"/>-->
                 </template>
             </el-table-column>
             <el-table-column label="操作" width="100px">
@@ -36,6 +39,7 @@ export default {
   name: 'RequestQuery',
   props:{
     reqQuery:Array,
+    supplementationList:Array
   },
   data() {
       return{
@@ -55,8 +59,29 @@ export default {
     deleteAll(){
         this.reqQuery.splice(0, this.reqQuery.length);
     },
+    querySearch(queryString, cb) {
+      let res = []
+      let restaurants = this.supplementationList;
+
+      let results = queryString ? restaurants.filter(this.createFilter(queryString)) : restaurants;
+      // 将匹配后的结果修改为正确的格式返回
+      for (let item of results){
+        res =  res.concat({'value':item.name})
+      }
+      // 调用 callback 返回建议列表的数据
+      cb(res);
+    },
+    createFilter(queryString) {
+
+      return (restaurant) => {
+        return (restaurant.name.toLowerCase().indexOf(queryString.toLowerCase()) === 0);
+      };
+    },
+    handleSelect(item) {
+      // console.log('handleSelect',item);
+    },
   }
-    
+
 }
 </script>
 <style scoped>

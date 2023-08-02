@@ -54,8 +54,8 @@
                 <el-col :span="20">
                     <p class="tip">
                         <span>编辑脚本</span>
-                        <el-tooltip :content="text" placement="bottom" >
-                        <i class="el-icon-info"></i>
+                        <el-tooltip :content="codeText" placement="bottom">
+                            <i class="el-icon-info"></i>
                         </el-tooltip>
                         <el-select size="small" style="width: 50%;float:right;" v-model="code" filterable clearable placeholder="请选择本用例需要使用的自定义函数">
                             <el-option v-for="item in functionListDetail" :key="item.id" :label="item.name" :value="item.code"/>
@@ -185,7 +185,7 @@
             </el-form>
         </div>
         <!-- 条件控制器条件编辑 -->
-        <div v-if="showType === 'table'" style="margin-top: 20px">
+        <div v-if="showType === 'condition'" style="margin-top: 20px">
             <el-row>
                 <el-col :span="20">
                     <p class="tip">
@@ -255,7 +255,6 @@ export default {
                 {label: "错误屏蔽", name: "errorContinue"},
                 {label: "条件控制器", name: "whetherExec"},
                 {label: "循环控制器", name: "loopExec"},
-
             ],
             functionList: [],
             optList: [
@@ -327,7 +326,6 @@ export default {
         }
     },
     created() {
-        // console.log(this.functionListDetail)
         this.getAssertion();
         this.getDbList();
     },
@@ -364,7 +362,7 @@ export default {
                 this.controller[index].value = 30;
             }else if(val ==="preScript" || val ==="postScript"){
                 this.controller[index].value = "";
-            }else if(val ==="preSql" | val ==="postSql"){
+            }else if(val ==="preSql" || val ==="postSql"){
                 this.controller[index].value = "{}";
             }else if(val === "whetherExec"){
                 this.controller[index].value = "[]";
@@ -424,7 +422,7 @@ export default {
         editCondition(index){
             this.index = index;
             this.conditions = JSON.parse(this.controller[index].value);
-            this.showType = "table";
+            this.showType = "condition";
             this.$emit('editCodeCharge', true)
         },
         saveCondition(){
@@ -457,12 +455,11 @@ export default {
             }else{
                 this.loop = JSON.parse(this.controller[index].value);
             }
-            this.showType = "form";
-            this.isCodeEditing = true;
+            this.showType = "loop";
+            this.isCodeEdit = true;
         },
         saveLoop(){
             this.$refs["loop"].validate(valid => {
-
                 if (valid) {
                     this.controller[this.index].value = JSON.stringify(this.loop);
                     this.showType = null;
@@ -471,7 +468,7 @@ export default {
                 }
             })
         },
-    },
+    }
 }
 </script>
 <style scoped>

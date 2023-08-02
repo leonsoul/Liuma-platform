@@ -27,8 +27,7 @@
                 <template slot-scope="scope">
                     <!--非文件时输入框 修改为带上识别的输入框，如果导入过自定义函数，就能输入{ 来自动生成识别-->
                     <el-autocomplete v-if="reqForm[scope.$index].type !== 'File'"  size="small" style="width: 90%" placeholder="请输入参数内容" v-model="reqForm[scope.$index].value"
-                              :fetch-suggestions="querySearch"  @select="handleSelect" :trigger-on-focus="false"
-                    />
+                              :fetch-suggestions="querySearch"  @select="handleSelect" :trigger-on-focus="false"/>
                     <!-- 文件时选择框 -->
                     <el-select v-if="reqForm[scope.$index].type === 'File'"  size="small" style="width: 90%;" v-model="reqForm[scope.$index].value" filterable clearable placeholder="请选择文件">
                         <el-option v-for="item in files" :key="item.id" :label="item.name" :value="item.id"/>
@@ -51,7 +50,7 @@ export default {
   props:{
     reqForm: Array,
     caseForm: Object,
-    functionListDetail: Array,
+    supplementationList: Array,
   },
   data() {
       return{
@@ -61,12 +60,12 @@ export default {
         ],
         types: ["String", "Int", "Float", "Boolean", "JSONObject", "JSONArray", "File"],
         files:[],
-        functionList:[]
+        // functionList:[]
       }
     },
     created() {
         this.getFiles();
-        this.getFunction()
+        // this.getFunction()
     },
     methods: {
         getFiles(){
@@ -84,36 +83,36 @@ export default {
         deleteAll(){
             this.reqForm.splice(0, this.reqForm.length);
         },
-        getFunction(){
-          // 获得添加进来的自定义函数的所有信息
-          if(this.caseForm){
-            for(let item of this.caseForm.commonParam.functions){
-              for(let functionItem of this.functionListDetail){
-                if (functionItem.id === item)
-                  this.functionList = this.functionList.concat(functionItem)
-              }
-            }
-          }
-
-        },
+        // getFunction(){
+        //   // 获得添加进来的自定义函数的所有信息
+        //   if(this.caseForm){
+        //     for(let item of this.caseForm.commonParam.functions){
+        //       for(let functionItem of this.functionListDetail){
+        //         if (functionItem.id === item)
+        //           this.functionList = this.functionList.concat(functionItem)
+        //       }
+        //     }
+        //   }
+        // },
       querySearch(queryString, cb) {
         let res = []
-        let restaurants = this.functionList;
+        let restaurants = this.supplementationList;
+
         let results = queryString ? restaurants.filter(this.createFilter(queryString)) : restaurants;
         // 将匹配后的结果修改为正确的格式返回
         for (let item of results){
-          res =  res.concat({'value':item.expression})
+          res =  res.concat({'value':item.name})
         }
         // 调用 callback 返回建议列表的数据
         cb(res);
       },
       createFilter(queryString) {
         return (restaurant) => {
-          return (restaurant.expression.toLowerCase().indexOf(queryString.toLowerCase()) === 0);
+          return (restaurant.name.toLowerCase().indexOf(queryString.toLowerCase()) === 0);
         };
       },
       handleSelect(item) {
-        console.log('handleSelect',item);
+        // console.log('handleSelect',item);
       },
     },
 

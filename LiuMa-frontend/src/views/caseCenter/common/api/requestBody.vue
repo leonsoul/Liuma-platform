@@ -33,7 +33,7 @@
         </el-row>
         <!-- form格式数据 -->
         <div v-if="reqBody.type==='form-data' || reqBody.type==='form-urlencoded'">
-            <request-form :reqForm="reqBody.form" :caseForm="caseForm" :functionListDetail="functionListDetail" style="width: 100%"/>
+            <request-form :reqForm="reqBody.form" :caseForm="caseForm" :supplementationList="supplementationList" style="width: 100%"/>
         </div>
         <!-- json格式数据 -->
         <div v-if="reqBody.type==='json'" class="req-json-editor">
@@ -62,7 +62,7 @@ export default {
     props:{
         reqBody:Object,
         caseForm: Object,
-        functionListDetail: Array
+        supplementationList: Array
     },
     data() {
         return{

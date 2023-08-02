@@ -28,7 +28,9 @@
             </el-table-column>
             <el-table-column label="预期值" prop="expect" min-width="160px">
                 <template slot-scope="scope">
-                    <el-input size="small" style="width: 90%" placeholder="请输入预期值" v-model="assertion[scope.$index].expect"/>
+                  <el-autocomplete  size="small" style="width: 90%" placeholder="请输入预期值" v-model="assertion[scope.$index].expect"
+                                    :fetch-suggestions="querySearch"  @select="handleSelect" :trigger-on-focus="false"/>
+<!--                    <el-input size="small" style="width: 90%" placeholder="请输入预期值" v-model="assertion[scope.$index].expect"/>-->
                 </template>
             </el-table-column>
             <el-table-column label="操作" width="60px">
@@ -62,6 +64,7 @@ export default {
     name: 'Assertion',
     props:{
         assertion: Array,
+        supplementationList: Array,
         apiId: String
     },
     components: { JsonPath },
@@ -143,7 +146,28 @@ export default {
                     assertion.assertion = "contains";
             }
             this.assertion.push(assertion);
+        },
+      querySearch(queryString, cb) {
+        let res = []
+        let restaurants = this.supplementationList;
+
+        let results = queryString ? restaurants.filter(this.createFilter(queryString)) : restaurants;
+        // 将匹配后的结果修改为正确的格式返回
+        for (let item of results){
+          res =  res.concat({'value':item.name})
         }
+        // 调用 callback 返回建议列表的数据
+        cb(res);
+      },
+      createFilter(queryString) {
+
+        return (restaurant) => {
+          return (restaurant.name.toLowerCase().indexOf(queryString.toLowerCase()) === 0);
+        };
+      },
+      handleSelect(item) {
+        // console.log('handleSelect',item);
+      },
     }
 }
 </script>

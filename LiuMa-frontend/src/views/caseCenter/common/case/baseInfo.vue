@@ -198,6 +198,7 @@ export default {
             let url = '/autotest/commonParam/custom/list/' + this.$store.state.projectId;
             this.$get(url, response =>{
                 this.paramList = response.data;
+                this.$emit('callbackUseParamDetail', this.paramList)
             });
         },
         getModule(){
