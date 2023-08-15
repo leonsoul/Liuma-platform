@@ -76,7 +76,7 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button size="small" @click="uploadFileVisible=false">取消</el-button>
-        <el-button size="small" type="primary" @click="submitFileForm('uploadFileForm', uploadFileForm)">确认</el-button>
+        <el-button size="small" type="primary" @click="submitFileForm('uploadFileForm', uploadFileForm)">上传</el-button>
       </div>
     </el-dialog>
     <!-- 自动生成用例配置 -->
@@ -335,6 +335,9 @@ export default {
             this.$post(url, param, response => {
                 let data = response.data;
                 for(let i=0;i<data.list.length;i++){
+                    if(data.list[i].moduleId==='0'){
+                        data.list[i].moduleName='默认模块';
+                    }
                     data.list[i].updateTime = timestampToTime(data.list[i].updateTime);
                 }
                 this.apiListData = data.list;

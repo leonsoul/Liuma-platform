@@ -42,7 +42,8 @@
         </el-table-column>
     </el-table>
     </el-form>
-    <el-button size="small" icon="el-icon-plus" type="text" @click="selectApiVisible=true">新增</el-button>
+    <el-button size="small" icon="el-icon-plus" type="text" @click="selectApiVisible=true">选择接口</el-button>
+    <el-button size="small" icon="el-icon-plus" type="text" @click="addApi">新增接口</el-button>
     <!-- 添加接口界面 -->
     <el-dialog title="选择接口" :visible.sync="selectApiVisible" width="800px" destroy-on-close>
         <select-api :selections="selections" :selectApiVisible="selectApiVisible"/>
@@ -55,12 +56,60 @@
     <el-drawer title="接口详情" :visible.sync="editCaseApiVisible"  direction="rtl" :with-header="false" destroy-on-close  :closeOnPressEscape="false" :wrapperClosable="false" size="900px">
         <div class="api-drawer-header">
             <span style="float: left; font-size: 16px;">接口详情编辑</span>
+            <el-button size="small" type="primary" style="float: right;" @click="saveCaseApi">保存</el-button>
             <div style="float: right;">
               <el-button size="small"  @click="confirmApiCancel">取消</el-button>
               <el-button size="small" type="primary"  @click="confirmApiSave">确定</el-button>
             </div>
         </div>
         <div class="api-drawer-body">
+            <el-form v-if="isAddApi" ref="caseApiForm" :rules="apiRules" :model="caseApiForm" label-width="80px">
+                <el-row :gutter="20">
+                    <el-col :span="14">
+                        <el-form-item label="接口名称" prop="name">
+                            <el-input  size="small" v-model="caseApiForm.name" placeholder="请输入接口名称"/>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="10">
+                        <el-form-item label="请求协议" prop="protocol">
+                            <el-select size="small" style="width:100%" v-model="caseApiForm.protocol" placeholder="请选择请求协议">
+                                <el-option v-for="item in protocols" :key="item" :label="item" :value="item"/>
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row :gutter="20">
+                    <el-col :span="14">
+                        <el-form-item label="接口请求" prop="path">
+                            <el-input size="small" v-model="caseApiForm.path" placeholder="请输入接口地址" style="margin-top: 5px">
+                                <el-select v-model="caseApiForm.method" slot="prepend" style="width: 80px" size="small">
+                                    <el-option v-for="item in methods" :key="item" :label="item" :value="item"/>
+                                </el-select>
+                            </el-input>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="10">
+                        <el-form-item label="域名标识" prop="domainSign">
+                            <el-select style="width:100%" size="small" v-model="caseApiForm.domainSign" clearable placeholder="请选择域名标识">
+                                <el-option v-for="item in domains" :key="item.id" :label="item.name" :value="item.id"/>
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row :gutter="20">
+                    <el-col :span="14">
+                        <el-form-item label="接口描述">
+                            <el-input size="small" clearable placeholder="请输入接口描述" v-model="caseApiForm.description"/>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="10">
+                        <el-form-item label="模块分类" prop="moduleId">
+                            <select-tree style="width:100%" placeholder="请选择模块分类" :selectedValue="caseApiForm.moduleId"
+                                :selectedLabel="caseApiForm.moduleName" :treeData="modules" @selectModule="selectModule($event)"/>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+            </el-form>
             <el-tabs style="width: 100%" v-model="activeTab">
                 <el-tab-pane label="请求头" name="header">
                     <request-header :reqHeader="caseApiForm.header" style="width: 100%"/>
@@ -87,7 +136,7 @@
         </div>
     </el-drawer>
     <!-- 用例调试选择引擎和环境 -->
-    <run-form :runForm="runForm" :runVisible.sync="runVisible" :showEnvironment="true" @closeRun="closeRun" @run="run($event)"/>
+    <run-form :runForm="runForm" :runVisible="runVisible" :showEnvironment="true" @closeRun="closeRun" @run="run($event)"/>
     <!-- 用例执行结果展示 -->
     <run-result :taskId="taskId" :caseType="caseForm.type" :resultVisable="resultVisable" @closeResult="closeResult"/>
   </div>
@@ -108,9 +157,10 @@ import Relation from './common/case/relation'
 import Controller from './common/case/controller'
 import RunForm from '@/views/common/business/runForm'
 import RunResult from './common/case/runResult'
+import SelectTree from '@/views/common/business/selectTree'
 
 export default {
-    components:{PageHeader, BaseInfo, SelectApi, RequestHeader, RequestQuery,
+    components:{PageHeader, BaseInfo, SelectApi, RequestHeader, RequestQuery, SelectTree,
     RequestRest,RequestBody, Assertion, Relation, Controller, RunForm, RunResult},
     data() {
         return{
@@ -121,8 +171,8 @@ export default {
                 type: "API",
                 environmentIds: [],
                 thirdParty: "",
-                moduleId: "",
-                moduleName: "",
+                moduleId: "0",
+                moduleName: "默认模块",
                 commonParam: {
                     functions: [],
                     params: [],
@@ -157,9 +207,18 @@ export default {
             rules: {
                 name: [{ required: true, message: '用例名称不能为空', trigger: 'blur' }],
                 type: [{ required: true, message: '用例类型不能为空', trigger: 'blur' }],
-                moduleId: [{ required: true, message: '用例模块不能为空', trigger: 'blur' }],
                 caseApis: [{ required: true, message: '请至少添加一条接口请求', trigger: 'blur' }]
             },
+            apiRules: {
+                name: [{ required: true, message: '接口名称不能为空', trigger: 'blur' }],
+                protocol: [{ required: true, message: '请求协议不能为空', trigger: 'blur' }],
+                path: [{ required: true, message: '接口地址不能为空', trigger: 'blur' }]
+            },
+            domains: "",
+            methods: ['POST', 'GET', 'PUT', 'DELETE', 'HEAD', 'PATCH', 'OPTIONS'],
+            modules: [],
+            protocols: ["HTTP"],
+            isAddApi: false,
             FunctionList: [],
             supplementationList :[],
             isShow: true,
@@ -171,6 +230,8 @@ export default {
     created() {
         // 配置顶部跳转面包屑，跳转路由的话需要修改这边和navcon中的结构。如[{'name':'用例中心','path':'/home/dashboard'}]
         this.$root.Bus.$emit('initBread', ["用例中心", "接口用例"]);
+        this.getDomain();
+        this.getModule();
         this.getDetail(this.$route.params);
     },
     async mounted() {
@@ -250,6 +311,36 @@ export default {
             this.selections.splice(0, this.selections.length);
             this.selectApiVisible = false;
         },
+        addApi(){
+            this.isAddApi = true;
+            this.activeTab = "body";
+            this.caseApiForm = {
+                id: "",
+                name: "",
+                level: "P1",
+                path: "",
+                method: "GET",
+                protocol: "HTTP",
+                domainSign: "",
+                moduleId: "0",
+                moduleName: "默认模块",
+                description: "",
+                header: [],
+                body: {
+                    type: 'json',
+                    form: [],
+                    json: '',
+                    raw: '',
+                    file: []
+                },
+                query: [],
+                rest: [],
+                assertion: [],
+                relation: [],
+                controller: []
+            };
+            this.editCaseApiVisible = true;
+        },
         // 保存接口选择
         confirmApiSave(){
 
@@ -265,6 +356,7 @@ export default {
         },
         editCaseApi(index){
             let caseApi = this.caseForm.caseApis[index];
+            this.isAddApi = false;
             this.activeTab = "body";
             if(!caseApi.body){
                 let url = "/autotest/api/detail/" + caseApi.apiId;
@@ -303,6 +395,42 @@ export default {
             // 取消编辑接口
             this.$set( this.caseForm.caseApis,this.caseApiIndexCopy,JSON.parse(JSON.stringify(this.caseApiFormCopy)));
             this.editCaseApiVisible = false;
+        },
+        saveCaseApi(){
+            if(this.isAddApi){
+                this.$refs["caseApiForm"].validate(valid => {
+                    if (valid) {
+                        this.caseApiForm.projectId = this.$store.state.projectId;
+                        let url = '/autotest/api/save';
+                        this.$post(url, this.caseApiForm, response =>{
+                            this.$message.success("接口新增成功");
+                            let caseApi = {
+                                id: getUUID(),
+                                index: this.caseForm.caseApis.length+1,
+                                apiId: response.data,
+                                apiMethod: this.caseApiForm.method,
+                                apiName: this.caseApiForm.name,
+                                apiPath: this.caseApiForm.path,
+                                description: this.caseApiForm.description,
+                                header: this.caseApiForm.header,
+                                body: this.caseApiForm.body,
+                                query: this.caseApiForm.query,
+                                rest: this.caseApiForm.rest,
+                                assertion: this.caseApiForm.assertion,
+                                relation: this.caseApiForm.relation,
+                                controller: this.caseApiForm.controller,
+                                edit: false
+                            };
+                            this.caseForm.caseApis.push(caseApi);
+                            this.editCaseApiVisible = false;
+                        });
+                    }else{
+                        return false;
+                    }
+                });
+            }else{
+                this.editCaseApiVisible = false;
+            }
         },
         deleteCaseApi(index){
             this.caseForm.caseApis.splice(index, 1);
@@ -366,11 +494,26 @@ export default {
             }
           }
         },
+        getDomain(){
+            let url = '/autotest/domainSign/list/' + this.$store.state.projectId;
+            this.$get(url, response =>{
+                this.domains = response.data;
+            });
+        },
+        getModule(){
+            let url = '/autotest/module/list/api/' + this.$store.state.projectId;
+            this.$get(url, response =>{
+                this.modules = response.data;
+            });
+        },
         getDetail(param){
             if (param.caseId){  // 编辑
                 let url = "/autotest/case/detail/api/" + param.caseId;
                 this.$get(url, response => {
                     let data = response.data;
+                    if(data.moduleId==='0'){
+                        data.moduleName = "默认模块";
+                    }
                     if(data.environmentIds){
                         data.environmentIds = JSON.parse(data.environmentIds);
                     }
@@ -379,6 +522,7 @@ export default {
                     }
                     for(let i=0;i<data.caseApis.length;i++){
                         let caseApi = data.caseApis[i];
+                        caseApi.edit = false;
                         if(caseApi.header){
                             caseApi.header = JSON.parse(caseApi.header);
                         }
@@ -409,7 +553,6 @@ export default {
                 });
             }
         },
-
         cancelAdd(){
             this.$router.push({path: '/caseCenter/caseManage'})
         },
@@ -508,7 +651,7 @@ export default {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 20px;
+    padding: 0px 20px;
 }
 .api-drawer-body{
     padding: 10px 20px;

@@ -46,10 +46,10 @@ public class CollectionService {
         }
         // 收集测试用例
         for(CollectionCaseDTO collectionCaseDTO: collectionDTO.getCollectionCases()){
-            if(collectionCaseDTO.getCaseType().equals("ANDROID")){
+            if("android".equals(collectionCaseDTO.getCaseSystem())){
                 hasAndroidCase = true;
             }
-            if(collectionCaseDTO.getCaseType().equals("APPLE")){
+            if("apple".equals(collectionCaseDTO.getCaseSystem())){
                 hasAppleCase = true;
             }
             // 将该用例存到集合用例的数据库中
@@ -100,17 +100,17 @@ public class CollectionService {
     public Map<String, Boolean> getCollectionCaseTypes(String collectionId){
         List<String> caseTypes = collectionCaseMapper.getCollectionCaseTypes(collectionId);
         Map<String, Boolean> caseTypeMap= new HashMap<>();
-        if(caseTypes.contains("ANDROID")){
+        if(caseTypes.contains("android")){
             caseTypeMap.put("hasAndroid", true);
         }else {
             caseTypeMap.put("hasAndroid", false);
         }
-        if(caseTypes.contains("APPLE")){
+        if(caseTypes.contains("apple")){
             caseTypeMap.put("hasApple", true);
         }else {
             caseTypeMap.put("hasApple", false);
         }
-        if(caseTypes.contains("API") || caseTypes.contains("WEB")){
+        if(caseTypes.contains(null)){
             caseTypeMap.put("needEnvironment", true);
         }else {
             caseTypeMap.put("needEnvironment", false);

@@ -49,7 +49,11 @@
             </el-table-column>
             <el-table-column label="用例模块" prop="caseModule">
             </el-table-column>
-            <el-table-column label="用例类型" prop="caseType">
+            <el-table-column label="用例类型">
+                <template slot-scope="scope">
+                    <span v-if="scope.row.caseType==='APP'">{{scope.row.caseType}}({{scope.row.caseSystem}})</span>
+                    <span v-else>{{scope.row.caseType}}</span>
+                </template>
             </el-table-column>
             <el-table-column label="操作" width="120px">
                 <template slot-scope="scope">
@@ -142,7 +146,8 @@ export default {
                     caseId: this.selections[i].id,
                     caseName: this.selections[i].name,
                     caseModule: this.selections[i].moduleName,
-                    caseType: this.selections[i].type
+                    caseType: this.selections[i].type,
+                    caseSystem: this.selections[i].system,
                 }
                 this.collectionForm.collectionCases.push(collectionCase);
             }
