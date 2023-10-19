@@ -24,9 +24,9 @@
                     <div v-else-if="controller[scope.$index].name === 'timeout' || controller[scope.$index].name === 'sleepBeforeRun' || controller[scope.$index].name === 'sleepAfterRun'" >
                         <el-input-number size="small" v-model="controller[scope.$index].value" step-strictly :step="1" :min="1" /> S
                     </div>
-                    <el-select v-else-if="controller[scope.$index].name === 'token'" style="width: 95%" v-model="controller[scope.$index].value">
-                        <el-option v-for="item in tokenOptList" :key="item.value" :label="item.label" :value="item.value"/>
-                    </el-select>
+<!--                    将token的输入修改为input使能自定义token格式，支持多用户同时登录-->
+                    <el-input v-else-if="controller[scope.$index].name === 'token'" style="width: 95%" v-model="controller[scope.$index].value">
+                    </el-input>
                     <el-select v-else-if="controller[scope.$index].name === 'encryption'" style="width: 95%" v-model="controller[scope.$index].value">
                         <el-option v-for="item in signOptList" :key="item.value" :label="item.label" :value="item.value"/>
                     </el-select>

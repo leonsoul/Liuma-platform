@@ -148,6 +148,10 @@ export default {
         if(this.$store.moduleId){
             this.searchForm.moduleId = this.$store.moduleId;
         }
+        // 增加搜索页数和模块的本地缓存
+        if(this.$store.caseSearchParam){
+            this.searchForm = this.$store.caseSearchParam;
+        }
         this.getdata(this.searchForm)
     },
     methods: {
@@ -155,6 +159,7 @@ export default {
         clickModule(data){
             this.$store.moduleId = data.id;
             this.searchForm.moduleId = data.id;
+            this.searchForm.page = 1;
             this.getdata(this.searchForm);
         },
         // 添加模块
@@ -231,6 +236,8 @@ export default {
         // 获取列表数据方法
         getdata(searchParam) {
             this.loading = true;
+            // 增加搜索页数和模块的本地缓存
+            this.$store.caseSearchParam = searchParam
             let url = '/autotest/case/list/' + searchParam.page + '/' + searchParam.limit;
             let param = {
                 condition: searchParam.condition,
@@ -263,6 +270,7 @@ export default {
         },
         // 搜索按钮
         search() {
+            this.searchForm.page = 1;
             this.getdata(this.searchForm)
         },
         // 重置按钮
@@ -271,6 +279,7 @@ export default {
             this.searchForm.caseType = "";
             this.searchForm.moduleId = "";
             this.searchForm.system = "";
+            this.searchForm.page = 1;
             this.getdata(this.searchForm);
         },
         // 新增用例

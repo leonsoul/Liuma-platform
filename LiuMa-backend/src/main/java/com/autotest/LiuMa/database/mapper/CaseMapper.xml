@@ -49,4 +49,12 @@
     </if>
     order by case.update_time desc
   </select>
+  <select id="getApiRelateList" parameterType="java.lang.String" resultType="com.autotest.LiuMa.dto.CaseDTO">
+    select case.id, case.num, case.name, case.level, case.module_id as moduleId, case.project_id, cm.name as moduleName,
+      case.type, case.third_party, case.description, case.environment_ids, case.system, case.common_param,
+      case.create_user, case.update_user, case.create_time, case.update_time from `case`
+      left join case_module cm on cm.id = case.module_id
+    where case.id in (select case_id from case_api where api_id = #{api_id} group by case_id) order by case.update_time desc
+  </select>
+
 </mapper>

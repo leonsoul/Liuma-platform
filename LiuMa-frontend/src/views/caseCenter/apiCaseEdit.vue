@@ -554,7 +554,7 @@ export default {
             }
         },
         cancelAdd(){
-            this.$router.push({path: '/caseCenter/caseManage'})
+            this.$router.back()
         },
         saveAdd(){
             this.$refs["caseForm"].validate(valid => {

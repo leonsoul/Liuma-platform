@@ -32,11 +32,13 @@
             <el-table-column prop="moduleName" label="所属模块"/>
             <el-table-column prop="username" label="创建人"/>
             <el-table-column prop="updateTime" label="更新时间" width="150"/>
-            <el-table-column fixed="right" align="operation" label="操作" width="150">
+            <el-table-column fixed="right" align="operation" label="操作" width="120">
                 <template slot-scope="scope">
                     <el-button type="text" size="mini" @click="editApi(scope.row)">编辑</el-button>
-                    <el-button type="text" size="mini" @click="deleteApi(scope.row)">删除</el-button>
                     <el-button type="text" size="mini" @click="generateCase(scope.row)">生成用例</el-button>
+                    <br>
+                    <el-button type="text" size="mini" @click="deleteApi(scope.row)">删除</el-button>
+                    <el-button type="text" size="mini" @click="queryRelateCase(scope.row)">查看用例</el-button>
                 </template>
             </el-table-column>
         </el-table>
@@ -89,6 +91,29 @@
             <autocase :paramRuleForm="paramRuleForm"/>
         </div>
     </el-drawer>
+    <!-- 查找使用到当前接口的用例 -->
+    <el-drawer :visible.sync="relateCaseVisible" direction="rtl" :with-header="false" destroy-on-close size="920px">
+        <div class="api-drawer-header">
+            <span style="float: left; font-size: 16px;">相关用例</span>
+            <el-button size="small" type="primary" style="float: right;" @click="relateCaseVisible=false">确定</el-button>
+        </div>
+      <el-col class="right-table">
+        <el-table size="small" :data="relateCaseListData" v-loading="loading" element-loading-text="拼命加载中">
+          <el-table-column prop="num" label="NO" min-width="10%"/>
+          <el-table-column prop="name" label="用例名称" min-width="35%"/>
+          <el-table-column prop="type" label="用例类型" min-width="10%"/>
+          <el-table-column prop="moduleName" label="所属模块" min-width="20%"/>
+          <el-table-column prop="updateTime" label="更新时间" min-width="20%"/>
+          <el-table-column fixed="right" align="operation" label="操作" min-width="20%">
+            <template slot-scope="scope">
+              <el-button type="text" size="mini" @click="routeRelateCase(scope.row)">前往用例</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+        <!-- 分页组件 -->
+        <Pagination v-bind:child-msg="pageRelateCaseParam" @callFather="callRelateCaseFather"></Pagination>
+      </el-col>
+    </el-drawer>
   </div>
 </template>
 
@@ -140,9 +165,23 @@ export default {
                 condition: "",
                 moduleId: "",
             },
+            // 新增搜索关联用例的搜索值
+            searchRelateCaseForm: {
+                page: 1,
+                limit: 10,
+                apiId: "",
+            },
             moduleList:[] , //存放当前项目中所有module的列表
             apiListData: [],
+            // 搜索关联用例的结果值
+            relateCaseListData:[],
             pageParam: {
+                currentPage: 1,
+                pageSize: 10,
+                total: 0
+            },
+            // 依赖相关页码
+            pageRelateCaseParam: {
                 currentPage: 1,
                 pageSize: 10,
                 total: 0
@@ -150,6 +189,8 @@ export default {
             treeData: [], //  存放所有module的数据: /autotest/module/list/api/的响应结果
             switchImportMethod: 'showdoc',
             editRuleVisible: false,
+            // 展示隐藏关联用例弹窗
+            relateCaseVisible: false,
             paramRuleForm: {
                 apiId: null,
                 header: [],
@@ -164,6 +205,9 @@ export default {
     created() {
         // 加载面包屑
         this.$root.Bus.$emit('initBread', ["用例中心", "接口管理"])
+        //   增加搜索页码的缓存
+        if(this.$store.apiSearchForm)
+            this.searchForm = this.$store.apiSearchForm
         this.getTree()
         this.getdata(this.searchForm)
     },
@@ -247,9 +291,9 @@ export default {
       },
        // 点击模块
        clickModule(data){
-          console.log("点击模块了");
           this.searchForm.moduleId = data.id;
-            this.getdata(this.searchForm);
+          this.searchForm.page = 1;
+          this.getdata(this.searchForm);
         },
         // 添加模块
         appendModule(data) {
@@ -327,6 +371,7 @@ export default {
         getdata(searchParam) {
             this.loading = true;
             let url = '/autotest/api/list/' + searchParam.page + '/' + searchParam.limit;
+            this.$store.apiSearchForm = searchParam;
             let param = {
                 condition: searchParam.condition,
                 moduleId: searchParam.moduleId,
@@ -354,14 +399,42 @@ export default {
             this.searchForm.limit = param.pageSize
             this.getdata(this.searchForm)
         },
+        // 获取列表数据方法
+        getRelateCaseData(searchRelateCaseForm) {
+            this.loading = true;
+            let url = '/autotest/api/apiRelateList/' + searchRelateCaseForm.page + '/' + searchRelateCaseForm.limit + '/' + searchRelateCaseForm.apiId;
+            this.$get(url, response => {
+                let data = response.data;
+                for(let i=0;i<data.list.length;i++){
+                    if(data.list[i].moduleId==='0'){
+                        data.list[i].moduleName='默认模块';
+                    }
+                    data.list[i].updateTime = timestampToTime(data.list[i].updateTime);
+                }
+                this.relateCaseListData = data.list;
+                this.loading = false
+                // 分页赋值
+                this.pageRelateCaseParam.currentPage = searchRelateCaseForm.page;
+                this.pageRelateCaseParam.pageSize = searchRelateCaseForm.limit;
+                this.pageRelateCaseParam.total = data.total;
+            });
+        },
+        // 分页插件事件
+        callRelateCaseFather(param) {
+            this.pageRelateCaseParam.page = param.currentPage
+            this.pageRelateCaseParam.limit = param.pageSize
+            this.getRelateCaseData(this.pageRelateCaseParam)
+        },
         // 搜索按钮
         search() {
+            this.searchForm.page = 1;
             this.getdata(this.searchForm)
         },
         // 重置按钮
         reset() {
             this.searchForm.condition = "";
             this.searchForm.moduleId = "";
+            this.searchForm.page = 1;
             this.getdata(this.searchForm);
         },
         importApi(){
@@ -403,6 +476,16 @@ export default {
           this.paramRuleForm.positiveAssertion = [];
           this.paramRuleForm.oppositeAssertion = [];
           this.editRuleVisible = true;
+        },
+        // 查找相关的用例
+        queryRelateCase(row){
+          this.searchRelateCaseForm.apiId = row.id;
+          this.getRelateCaseData(this.searchRelateCaseForm)
+          this.relateCaseVisible = true;
+        },
+        // 前往相关用例的编辑页面
+        routeRelateCase(row){
+          this.$router.push({path: '/caseCenter/caseManage/apiCase/edit/'+row.id});
         },
         // 提交自动用例规则
         submitRuleForm(form){

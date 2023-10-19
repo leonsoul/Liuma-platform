@@ -4,7 +4,9 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.autotest.LiuMa.database.domain.Api;
 import com.autotest.LiuMa.database.mapper.ApiMapper;
+import com.autotest.LiuMa.database.mapper.CaseMapper;
 import com.autotest.LiuMa.dto.ApiDTO;
+import com.autotest.LiuMa.dto.CaseDTO;
 import com.autotest.LiuMa.request.ApiRequest;
 import com.autotest.LiuMa.request.QueryRequest;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,8 @@ public class ApiService {
 
     @Resource
     private ApiMapper apiMapper;
+    @Resource
+    private CaseMapper caseMapper;
 
     public String saveApi(ApiRequest apiRequest) {
         JSONObject apiObject = (JSONObject) JSON.toJSON(apiRequest);
@@ -52,5 +56,8 @@ public class ApiService {
         }
         return apiMapper.getApiList(request);
     }
-
+    public List<CaseDTO> getApiRelate(String apiId){
+        //  获得使用到该接口用例
+        return caseMapper.getApiRelateList(apiId);
+    }
 }

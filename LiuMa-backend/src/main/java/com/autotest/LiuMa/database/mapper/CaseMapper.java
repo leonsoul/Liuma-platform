@@ -20,4 +20,6 @@ public interface CaseMapper {
     CaseDTO getCaseDetail(String id);
 
     List<CaseDTO> getCaseList(QueryRequest request);
+    // 获得使用了接口API的用例
+    List<CaseDTO> getApiRelateList(String api_id);
 }

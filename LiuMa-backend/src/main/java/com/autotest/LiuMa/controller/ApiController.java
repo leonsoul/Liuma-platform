@@ -3,6 +3,7 @@ package com.autotest.LiuMa.controller;
 import com.autotest.LiuMa.common.utils.PageUtils;
 import com.autotest.LiuMa.common.utils.Pager;
 import com.autotest.LiuMa.dto.ApiDTO;
+import com.autotest.LiuMa.dto.CaseDTO;
 import com.autotest.LiuMa.request.ApiRequest;
 import com.autotest.LiuMa.request.QueryRequest;
 import com.autotest.LiuMa.service.ApiService;
@@ -38,6 +39,14 @@ public class ApiController {
     @GetMapping("/detail/{apiId}")
     public ApiDTO getApiDetail(@PathVariable String apiId){
         return apiService.getApiDetail(apiId);
+    }
+
+    @GetMapping("/apiRelateList/{goPage}/{pageSize}/{apiId}")
+    public Pager<List<CaseDTO>> getApiRelate(@PathVariable int goPage, @PathVariable int pageSize,
+                                             @PathVariable String apiId){
+        // 查询当前接口关联的用例，返回分页结果
+        Page<Object> page = PageHelper.startPage(goPage, pageSize, true);
+        return PageUtils.setPageInfo(page, apiService.getApiRelate(apiId));
     }
 
     @PostMapping("/list/{goPage}/{pageSize}")
