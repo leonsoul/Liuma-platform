@@ -554,7 +554,12 @@ export default {
             }
         },
         cancelAdd(){
-            this.$router.back()
+          // 如果是通过其他页面跳转过来的，点击返回回到用例管理页面
+          if (window.history.state) {
+            this.$router.go(-1)
+          } else {
+            this.$router.push('/caseCenter/caseManage')
+          }
         },
         saveAdd(){
             this.$refs["caseForm"].validate(valid => {

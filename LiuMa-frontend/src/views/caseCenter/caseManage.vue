@@ -290,7 +290,11 @@ export default {
         // 提交用例保存
         submitCase() {
             if (this.newCaseType == "API"){
-                this.$router.push({path: '/caseCenter/caseManage/apiCase/add'});
+                console.log(this.searchForm.moduleId)
+                if(this.searchForm.moduleId)
+                  this.$router.push({path: '/caseCenter/caseManage/apiCase/add/'+this.searchForm.moduleId});
+                else
+                  this.$router.push({path: '/caseCenter/caseManage/apiCase/add/'+'0'});
             }else if (this.newCaseType == "WEB"){
                 this.$router.push({path: '/caseCenter/caseManage/webCase/add'});
             }else if (this.newCaseType == "ANDROID"){
