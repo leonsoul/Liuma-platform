@@ -69,6 +69,7 @@ public class CaseController {
 
     @PostMapping("/auto/generate")
     public void generateCase(@RequestBody ApiParamRuleRequest ruleRequest, HttpServletRequest request){
+        // 生成用例
         String user = request.getSession().getAttribute("userId").toString();
         ruleRequest.setCreateUser(user);
         caseGenerateService.generateCase(ruleRequest);

@@ -198,7 +198,8 @@ export default {
                 query: [],
                 rest: [],
                 positiveAssertion: [],
-                oppositeAssertion: []
+                oppositeAssertion: [],
+                controller: []
             }
         }
     },

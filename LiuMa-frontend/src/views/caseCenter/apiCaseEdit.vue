@@ -6,7 +6,9 @@
     <page-header title="用例编辑" :showDebug="true" :cancel="cancelAdd" :debug="debugCase" :save="saveAdd"/>
     <el-form ref="caseForm" :rules="rules" :model="caseForm" label-width="90px">
         <base-info :caseForm="caseForm" :applications=[] v-on:getUseFunction="getUseFunction" v-on:callbackUseFunctionDetail="callbackUseFunctionDetail" v-on:callbackUseParamDetail="callbackUseParamDetail"/>
-    <p class="tip">接口请求</p>
+    <p class="tip">接口请求
+      <el-button v-if="taskId" style="float:right;"  @click="resultVisable=true ">查看当前调试请求记录</el-button>
+    </p>
     <el-form-item style="margin-left:-80px;" prop="caseApis"/>
     <el-table :data="caseForm.caseApis" row-key="id" class="sort-table" size="small">
         <el-table-column label="" width="60px">
@@ -18,6 +20,12 @@
         </el-table-column>
         <el-table-column label="接口名称" prop="apiName">
         </el-table-column>
+      <el-table-column min-width="75px">
+        <template v-slot="scope" >
+            <el-tag v-if="scope.row.relation && scope.row.relation.length">关联</el-tag>
+            <el-tag v-if="scope.row.assertion && scope.row.assertion.length" color="#c6f5d7">断言</el-tag>
+        </template>
+      </el-table-column>
         <el-table-column label="请求方式" prop="apiMethod">
         </el-table-column>
         <el-table-column label="接口地址" prop="apiPath">
@@ -56,10 +64,10 @@
     <el-drawer title="接口详情" :visible.sync="editCaseApiVisible"  direction="rtl" :with-header="false" destroy-on-close  :closeOnPressEscape="false" :wrapperClosable="false" size="900px">
         <div class="api-drawer-header">
             <span style="float: left; font-size: 16px;">接口详情编辑</span>
-            <el-button size="small" type="primary" style="float: right;" @click="saveCaseApi">保存</el-button>
             <div style="float: right;">
               <el-button size="small"  @click="confirmApiCancel">取消</el-button>
-              <el-button size="small" type="primary"  @click="confirmApiSave">确定</el-button>
+              <el-button v-if="isAddApi" size="small" type="primary" style="float: right;" @click="saveCaseApi">保存</el-button>
+              <el-button v-else size="small" type="primary"  @click="confirmApiSave">确定</el-button>
             </div>
         </div>
         <div class="api-drawer-body">

@@ -26,4 +26,6 @@ public class ApiParamRuleRequest {
     private JSONArray  oppositeAssertion;   // 反向断言
 
     private String createUser;
+
+    private JSONArray controller;  // 逻辑控件
 }

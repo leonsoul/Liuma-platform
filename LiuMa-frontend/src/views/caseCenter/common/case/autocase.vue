@@ -1,6 +1,6 @@
 /**
 * 响应断言
-*/ 
+*/
 <template>
     <div>
         <el-empty v-if="isEmpty" description="当前接口不适用规则配置, 不支持自动生成"/>
@@ -27,6 +27,9 @@
             <el-tab-pane label="逆向断言" name="opposite">
                 <assertion :assertion="paramRuleForm.oppositeAssertion" :apiId="paramRuleForm.apiId" style="width: 100%"/>
             </el-tab-pane>
+            <el-tab-pane label="逻辑控件" name="controller">
+              <controller :controller="paramRuleForm.controller" style="width: 100%"/>
+            </el-tab-pane>
         </el-tabs>
     </div>
 </template>
@@ -34,12 +37,13 @@
 import RequestParamRule from '../api/requestParamRule'
 import Assertion from './assertion'
 import {toJsonPath} from '@/utils/jsonPath'
+import Controller from "./controller.vue";
 export default {
     name: 'Autocase',
     props:{
         paramRuleForm: Object
     },
-    components: { RequestParamRule, Assertion },
+    components: {Controller, RequestParamRule, Assertion },
     data() {
         return{
             activeTab: "body",
@@ -105,7 +109,7 @@ export default {
                 }
                 if(item.type!=='JSONObject' & item.type!=='JSONArray' & item.type!=='File' & item.name !== "" & item.name !== null){
                     newArr.push(newItem);
-                }  
+                }
             });
         },
         filterPath(oldArr, newArr){

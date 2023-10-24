@@ -18,9 +18,11 @@ import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 
 import javax.annotation.Resource;
+import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 @Transactional(rollbackFor = Exception.class)
@@ -47,10 +49,9 @@ public class CaseGenerateService {
         put("null", new Object[]{"正向", false, "可以传null", null});
         put("lost", new Object[]{"正向", true, "可以空传", null});
     }};
-
     public void generateCase(ApiParamRuleRequest request) {
         Api api = apiMapper.getApiDetail(request.getApiId());
-        // 先新增健壮性用例
+        // 构建生成的接口用例
         Case testCase = new Case();
         testCase.setId(UUID.randomUUID().toString());
         testCase.setName("【健壮性用例】接口 "+api.getName()+" 字段健壮性校验");
@@ -68,6 +69,7 @@ public class CaseGenerateService {
         testCase.setCreateUser(request.getCreateUser());
         testCase.setUpdateUser(request.getCreateUser());
         testCase.setStatus("Normal");
+        // 在数据库中加入当前生成的用例
         caseMapper.addCase(testCase);
         // 先生成完整的接口请求
         List<CaseApi> caseApis = new ArrayList<>();
@@ -83,7 +85,10 @@ public class CaseGenerateService {
         caseApi.setRest(this.replaceArray(api.getHeader(), request.getHeader()));
         caseApi.setRelation("[]");
         caseApi.setAssertion(JSONArray.toJSONString(request.getPositiveAssertion()));
-        caseApi.setController(JSONArray.parseArray("[{\"name\": \"errorContinue\", \"value\": true}]").toJSONString());
+        // 添加逻辑控件
+        JSONArray array1 = JSONArray.parseArray("[{\"name\": \"errorContinue\", \"value\": true}]");
+        array1.addAll(request.getController());
+        caseApi.setController(array1.toJSONString());
         caseApis.add(caseApi);
         // 再按照规则替换用例接口
         Long index = 1L;    // 接口序号
@@ -136,7 +141,9 @@ public class CaseGenerateService {
         caseApi.setRelation("[]");
         caseApi.setAssertion(JSONArray.toJSONString(verifyDTO.getDirection().equals("正向") ?
                 request.getPositiveAssertion(): request.getOppositeAssertion()));
-        caseApi.setController(JSONArray.parseArray("[{\"name\": \"errorContinue\", \"value\": true}]").toJSONString());
+        JSONArray array1 = JSONArray.parseArray("[{\"name\": \"errorContinue\", \"value\": true}]");
+        array1.addAll(request.getController());
+        caseApi.setController(array1.toJSONString());
         return caseApi;
     }
 
