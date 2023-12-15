@@ -101,13 +101,13 @@
     group by r.project_id, r.source_id order by `count` desc limit 10
   </select>
   <select id="getCaseFailTopByProject" resultType="com.autotest.LiuMa.dto.StatisticsDTO">
-    select max(r.project_id), max(c.id), max(c.name), count(rcc.id) as `count` from report_collection_case rcc
-    left join `case` c on c.id = rcc.case_id
-    left join report_collection rc on rc.id = rcc.report_collection_id
-    left join report r on r.id = rc.report_id
-    where r.create_time &gt; (unix_timestamp(current_timestamp(3))-7*24*60*60)*1000 and r.source_type != 'temp'
+    select r.project_id, c.id, c.name, count(rcc.id) as `count` from report_collection_case rcc
+       left join `case` c on c.id = rcc.case_id
+       left join report_collection rc on rc.id = rcc.report_collection_id
+       left join report r on r.id = rc.report_id
+    where r.create_time > (unix_timestamp(current_timestamp(3))-7*24*60*60)*1000 and r.source_type != 'temp'
     and c.status != 'Trash' and rcc.status != 'success'
-    group by rcc.case_id order by `count` desc limit 10
+    group by rcc.case_id,r.project_id, c.id, c.name order by `count` desc limit 10
   </select>
 
 </mapper>
