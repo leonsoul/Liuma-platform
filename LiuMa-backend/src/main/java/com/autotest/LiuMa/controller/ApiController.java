@@ -27,7 +27,6 @@ public class ApiController {
     public String saveApi(@RequestBody ApiRequest apiRequest, HttpServletRequest request) {
         String user = request.getSession().getAttribute("userId").toString();
         apiRequest.setUpdateUser(user);
-        apiService.saveApi(apiRequest);
         return apiService.saveApi(apiRequest);
     }
 

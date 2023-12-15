@@ -3,10 +3,11 @@
  */
 <template>
   <div>
-    <el-select class="select-tree" size="small" style="width:100%" v-model="selectedValue" :placeholder="placeholder">
+    <el-select class="select-tree" ref = "moduleSelect" size="small" style="width:100%" v-model="selectedValue" :placeholder="placeholder">
       <el-input class="input-filter" size="mini" placeholder="输入名称过滤" v-model="filterText"/>
       <el-option :value="selectedValue" :label="selectedLabel" style="height: auto; background-color: white !important;">
-        <el-tree :data="treeData" :accordion="true" node-key="id" ref="tree" :current-node-key="selectedValue"
+        <el-tree :data="treeData" :accordion="true" node-key="id" ref="tree" :current-node-key="selectedValue" :highlightCurrent="true"
+                 :expand-on-click-node="true"
           :props="defaultProps" :filter-node-method="filterNode" @node-click="clickModule"></el-tree>
       </el-option>
     </el-select>
@@ -44,6 +45,7 @@
       },
       clickModule(data) {
         this.$emit("selectModule", data);
+        this.$refs.moduleSelect.blur();
       }
     }
   }

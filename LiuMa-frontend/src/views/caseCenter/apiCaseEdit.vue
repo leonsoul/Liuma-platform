@@ -20,10 +20,14 @@
         </el-table-column>
         <el-table-column label="接口名称" prop="apiName">
         </el-table-column>
-      <el-table-column min-width="75px">
-        <template v-slot="scope" >
-            <el-tag v-if="scope.row.relation && scope.row.relation.length">关联</el-tag>
-            <el-tag v-if="scope.row.assertion && scope.row.assertion.length" color="#c6f5d7">断言</el-tag>
+      <el-table-column min-width="90px">
+        <template v-slot="scope">
+            <el-tag v-if="scope.row.relation && scope.row.relation.length" class="font-size-12">关联
+              <span style="font-size: 10px;margin-left: -2px;">({{scope.row.relation.length}})</span>
+            </el-tag>
+            <el-tag v-if="scope.row.assertion && scope.row.assertion.length" color="#c6f5d7" class="font-size-12">断言
+              <span style="font-size: 10px;margin-left: -2px;">({{scope.row.assertion.length}})</span>
+            </el-tag>
         </template>
       </el-table-column>
         <el-table-column label="请求方式" prop="apiMethod">
@@ -668,5 +672,14 @@ export default {
 }
 .api-drawer-body{
     padding: 10px 20px;
+}
+.font-size-12{
+  font-size: 12px;
+  text-align: center;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 0 5px;
+  width: 55px;
 }
 </style>
