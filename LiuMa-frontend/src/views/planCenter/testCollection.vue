@@ -101,6 +101,9 @@ export default {
                 environmentId: null,
                 deviceId: null
             },
+           timerMap:  new Map(),
+          currentRow: null,
+          rowMap: new Map(),
         }
     },
     created() {
@@ -136,6 +139,17 @@ export default {
                 this.pageparam.total = data.total;
             });
         },
+        getReports(row){
+          // 定时器获取报告
+          this.getReportData(row);
+          // 设置该集合的定时器，1秒获取一次接口内容
+          let timer = window.setInterval(() => {
+            setTimeout(() => {
+              this.getReportData(row)
+            }, 0)
+          },1000);
+          this.timerMap.set(row, timer)
+        },
         getReportData(row){
             // 获取报告
             let url = '/autotest/report/list/' + row.pageparam.currentPage + '/' + row.pageparam.pageSize;
@@ -143,43 +157,57 @@ export default {
                 projectId: this.$store.state.projectId,
                 collectionId: row.id
             };
+            let isResend = false  // 判断是否需要重复发送
             this.$post(url, param, response => {
-                let data = response.data;
-                for(let i =0; i<data.list.length; i++){
-                    data.list[i].createTime = timestampToTime(data.list[i].createTime);
-                    let status = data.list[i].status
-                    if(status === 'success'){
-                        data.list[i].format = 'SUCCESS';
-                        data.list[i].color = '#67C23A';
-                    }else if(status === 'fail'){
-                        data.list[i].format = 'FAIL';
-                        data.list[i].color = '#E6A23C';
-                    }else if(status === 'error'){
-                        data.list[i].format = 'ERROR';
-                        data.list[i].color = '#F56C6C';
-                    }else if(status === 'skip'){
-                        data.list[i].format = 'SKIP';
-                        data.list[i].color = '#535457';
-                    }else if(status === 'prepared'){
-                        data.list[i].format = '等待执行';
-                        data.list[i].color = '#409EFF';
-                    }else if(status === 'running'){
-                        data.list[i].format = "RUNNING";
-                        data.list[i].color = '#409EFF';
-                    }else if(status === 'discontinue'){
-                        data.list[i].format = "已终止";
-                        data.list[i].color = '#535457';
-                    }
-                    data.list[i].index = (row.pageparam.currentPage-1) * row.pageparam.pageSize + i+1;
+              let data = response.data;
+              for (let i = 0; i < data.list.length; i++) {
+                data.list[i].createTime = timestampToTime(data.list[i].createTime);
+                let status = data.list[i].status
+                if (status === 'success') {
+                  data.list[i].format = 'SUCCESS';
+                  data.list[i].color = '#67C23A';
+                } else if (status === 'fail') {
+                  data.list[i].format = 'FAIL';
+                  data.list[i].color = '#E6A23C';
+                } else if (status === 'error') {
+                  data.list[i].format = 'ERROR';
+                  data.list[i].color = '#F56C6C';
+                } else if (status === 'skip') {
+                  data.list[i].format = 'SKIP';
+                  data.list[i].color = '#535457';
+                } else if (status === 'prepared') {
+                  data.list[i].format = '等待执行';
+                  data.list[i].color = '#409EFF';
+                } else if (status === 'running') {
+                  data.list[i].format = "RUNNING";
+                  data.list[i].color = '#409EFF';
+                } else if (status === 'discontinue') {
+                  data.list[i].format = "已终止";
+                  data.list[i].color = '#535457';
                 }
-                row.reportData = data.list;
-                row.pageparam.total = data.total;
+                data.list[i].index = (row.pageparam.currentPage - 1) * row.pageparam.pageSize + i + 1;
+              }
+              // 如果第一个运行的状态是等待中，或者运行中，isResend置为flase其余情况置为true
+              isResend = !['prepared', 'running'].includes(data.list[0].status);
+              // 如果执行完成，结束定时器执行请求接口的任务
+              if (isResend === true)
+                window.clearInterval(this.timerMap.get(row));
+              row.reportData = data.list;
+              row.pageparam.total = data.total;
             });
         },
         expandSelect(row, expandedRows) {
             if(expandedRows.length != 0){
-                this.getReportData(row);
+                this.getReports(row);
             }
+            // 获得表格中的每个集合展开收起状态
+            if(!this.rowMap.has(row)){
+              this.rowMap.set(row, true);
+            }
+            else {
+              this.rowMap.set(row, !this.rowMap.get(row));
+            }
+            console.log(this.rowMap)
         },
         // 分页插件事件
         collectionCallFather(parm) {
@@ -225,6 +253,8 @@ export default {
                 this.runForm.sourceName = row.name;
                 this.runForm.taskType = "run";
                 this.runForm.projectId = this.$store.state.projectId;
+                // 记录当前操作的集合，用于执行时的关联
+                this.currentRow = row;
                 this.runVisible = true;
             });
         },
@@ -235,6 +265,12 @@ export default {
             let url = '/autotest/run';
             this.$post(url, runForm, response =>{
                 this.$message.success("执行成功 执行结果请查看报告");
+                // 集合执行完成后判断当前列是否是展开的，如果是展开的，刷新列表，更新执行进度
+                if(this.rowMap.get(this.currentRow)){
+                  setTimeout(() => {
+                    this.getReports(this.currentRow);
+                  }, 1000);
+                }
             });
             this.runVisible = false;
         },
