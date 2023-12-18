@@ -207,7 +207,6 @@ export default {
             else {
               this.rowMap.set(row, !this.rowMap.get(row));
             }
-            console.log(this.rowMap)
         },
         // 分页插件事件
         collectionCallFather(parm) {
