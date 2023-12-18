@@ -80,7 +80,7 @@ public class NotificationService {
                 replace("{caseError}", report.getErrorCount().toString()).
                 replace("{successPercent}", report.getPassRate()).
                 replace("{executeTime}", during +"S").
-                replace("{reportUrl}", "http://" +localhost+"/#/report/testReport/detail/" +report.getId());
+                replace("{reportUrl}", "http://192.168.88.31/#/report/testReport/detail/" +report.getId());
         // 发送
 //        {"at": {"isAtAll": true}, "msgtype": "markdown",
 //        "markdown": {"text": "#### {reportTitle}\n##### •
