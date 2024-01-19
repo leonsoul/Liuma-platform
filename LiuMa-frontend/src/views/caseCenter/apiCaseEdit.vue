@@ -237,6 +237,7 @@ export default {
             isCodeEdit: false,
             functionListDetail: [],
             paramListDetail: [],
+            debugEnvironmentId: "",
         }
     },
     created() {
@@ -405,7 +406,9 @@ export default {
         },
         confirmApiCancel(){
             // 取消编辑接口
-            this.$set( this.caseForm.caseApis,this.caseApiIndexCopy,JSON.parse(JSON.stringify(this.caseApiFormCopy)));
+            if(!this.isAddApi){
+              this.$set( this.caseForm.caseApis,this.caseApiIndexCopy,JSON.parse(JSON.stringify(this.caseApiFormCopy)));
+            }
             this.editCaseApiVisible = false;
         },
         saveCaseApi(){
@@ -574,19 +577,22 @@ export default {
           }
         },
         saveAdd(){
+            // 如果用例中存在值
             this.$refs["caseForm"].validate(valid => {
                 if (valid) {
+                    // 如果存在值
                     this.caseForm.projectId = this.$store.state.projectId;
                     for(let i=0; i<this.caseForm.caseApis.length; i++){
                         this.caseForm.caseApis[i].index = i+1;
                     }
+                    // 请求接口保存内容
                     let url = '/autotest/case/save';
                     this.$post(url, this.caseForm, response =>{
                         if(response.status===0){
                           this.$message.success("保存成功");
                         }
 
-                        // 如果是复用过来的用例的话，点击保存返回到用例列表页面，如果是编辑、新增的话，仍然停留在编辑页。
+                        // 如果是复用，新增过来的用例的话，点击保存返回到用例列表页面，如果是编辑的话，仍然停留在编辑页。
                         if(this.$route.params.type === 'copy'){
                           this.$router.push({path: '/caseCenter/caseManage'});
                         }
@@ -605,7 +611,10 @@ export default {
         debugCase(){
             // 用例调试
             // this.runForm.engineId = 'system';
-            if(this.caseForm.environmentIds.length > 0){
+            if(this.debugEnvironmentId !== ''){
+              this.runForm.environmentId = this.debugEnvironmentId;
+            }
+            else if(this.caseForm.environmentIds.length > 0){
                 this.runForm.environmentId = this.caseForm.environmentIds[0];
             }
             this.runForm.sourceType = "temp";
@@ -633,6 +642,7 @@ export default {
                 this.resultVisable = true;
             });
             this.runVisible = false;
+            this.debugEnvironmentId = this.runForm.environmentId;
         },
         closeResult(){
             this.resultVisable = false;

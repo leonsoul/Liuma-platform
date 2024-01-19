@@ -115,6 +115,10 @@ export default new Router({
         name: '首页',
         component: index,
         children: [{
+            path: '/index',
+            name: '主页',
+            redirect: '/home/dashboard'
+        },{
             path: '/home/dashboard',
             name: '主页',
             component: Homepage,

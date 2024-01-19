@@ -157,7 +157,7 @@ export default {
                 projectId: this.$store.state.projectId,
                 collectionId: row.id
             };
-            let isResend = false  // 判断是否需要重复发送
+
             this.$post(url, param, response => {
               let data = response.data;
               for (let i = 0; i < data.list.length; i++) {
@@ -187,11 +187,11 @@ export default {
                 }
                 data.list[i].index = (row.pageparam.currentPage - 1) * row.pageparam.pageSize + i + 1;
               }
-              // 如果第一个运行的状态是等待中，或者运行中，isResend置为flase其余情况置为true
-              isResend = !['prepared', 'running'].includes(data.list[0].status);
-              // 如果执行完成，结束定时器执行请求接口的任务
-              if (isResend === true)
+              if(data.list.length===0 || !['prepared', 'running'].includes(data.list[0].status)){
+                // 如果没有报过，或者第一个运行的状态不是等待中，或者运行中,结束定时器执行请求接口的任务
                 window.clearInterval(this.timerMap.get(row));
+              }
+
               row.reportData = data.list;
               row.pageparam.total = data.total;
             });

@@ -494,7 +494,7 @@ export default {
           }else{
             this.$message.warning("属性值或属性名不能为空");
           }
-          
+
         },
         // 新增属性定位
         addProp(index){
@@ -609,9 +609,11 @@ export default {
             }
         },
         saveAdd(){
+            // 如果接口用例中有值
             this.$refs["caseForm"].validate(valid => {
                 if (valid) {
                     this.caseForm.projectId = this.$store.state.projectId;
+                    // 构造接口用例的参数
                     for(let i=0; i<this.caseForm.caseApps.length; i++){
                         this.caseForm.caseApps[i].index = i+1;
                         for(let j=0; j<this.caseForm.caseApps[i].element.length; j++){
