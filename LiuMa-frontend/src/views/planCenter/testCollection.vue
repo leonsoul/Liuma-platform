@@ -17,23 +17,23 @@
         </el-form-item>
     </el-form>
     <!--列表-->
-    <el-table size="small" :data="collectionData" v-loading="loading" @expand-change="expandSelect">
+    <el-table size="small" :data="collectionData" v-loading="loading" row-key="id" :expand-row-keys="expands" @expand-change="expandSelect">
         <el-table-column type="expand" width="40px">
             <template slot-scope="props">
                 <div style="padding-left: 40px">
                     <!-- 报告列表 -->
                     <el-table size="mini" :data="props.row.reportData">
                         <el-table-column label="序号" prop="index" width="50px" align="center"/>
-                        <el-table-column label="报告名称" prop="name" min-width="200px"/>
+                        <el-table-column label="报告名称" prop="name" min-width="200px" :show-overflow-tooltip="true"/>
                         <el-table-column label="报告状态" prop="format" width="100px"/>
                         <el-table-column label="执行进度" prop="runProgress" width="120px">
                             <template slot-scope="scope">
                                 <el-progress :percentage="props.row.reportData[scope.$index].progress" :color="props.row.reportData[scope.$index].color"/>
                             </template>
                         </el-table-column>
-                        <el-table-column label="用例总条数" prop="total"/>
-                        <el-table-column label="成功条数" prop="passCount"/>
-                        <el-table-column label="成功率" prop="passRate"/>
+                        <el-table-column label="总用例数" prop="total" width="80px"/>
+                        <el-table-column label="成功数" prop="passCount" width="80px"/>
+                        <el-table-column label="成功率" prop="passRate" width="80px"/>
                         <el-table-column label="创建时间" prop="createTime" width="150px"/>
                         <el-table-column fixed="right" align="center"  label="操作" width="150px">
                             <template slot-scope="scope">
@@ -48,9 +48,9 @@
             </template>
         </el-table-column>
         <el-table-column prop="index" label="序号" width="50px" align="center"/>
-        <el-table-column prop="name" label="集合名称" min-width="160px"/>
-        <el-table-column prop="versionName" label="版本"/>
-        <el-table-column prop="description" label="集合描述" min-width="180px"/>
+        <el-table-column prop="name" label="集合名称" min-width="160px" :show-overflow-tooltip="true"/>
+        <el-table-column prop="versionName" label="版本" :show-overflow-tooltip="true"/>
+        <el-table-column prop="description" label="集合描述" min-width="180px" :show-overflow-tooltip="true"/>
         <el-table-column prop="username" label="创建人"/>
         <el-table-column prop="updateTime" label="更新时间" width="150px"/>
         <el-table-column fixed="right" align="center" label="操作" width="150px">
@@ -80,6 +80,7 @@ export default {
     },
     data() {
         return{
+            expands: [], // 默认展开行
             loading:false,
             searchForm: {
                 page: 1,
@@ -159,47 +160,52 @@ export default {
             };
 
             this.$post(url, param, response => {
-              let data = response.data;
-              for (let i = 0; i < data.list.length; i++) {
-                data.list[i].createTime = timestampToTime(data.list[i].createTime);
-                let status = data.list[i].status
-                if (status === 'success') {
-                  data.list[i].format = 'SUCCESS';
-                  data.list[i].color = '#67C23A';
-                } else if (status === 'fail') {
-                  data.list[i].format = 'FAIL';
-                  data.list[i].color = '#E6A23C';
-                } else if (status === 'error') {
-                  data.list[i].format = 'ERROR';
-                  data.list[i].color = '#F56C6C';
-                } else if (status === 'skip') {
-                  data.list[i].format = 'SKIP';
-                  data.list[i].color = '#535457';
-                } else if (status === 'prepared') {
-                  data.list[i].format = '等待执行';
-                  data.list[i].color = '#409EFF';
-                } else if (status === 'running') {
-                  data.list[i].format = "RUNNING";
-                  data.list[i].color = '#409EFF';
-                } else if (status === 'discontinue') {
-                  data.list[i].format = "已终止";
-                  data.list[i].color = '#535457';
+                let data = response.data;
+                for(let i =0; i<data.list.length; i++){
+                    data.list[i].createTime = timestampToTime(data.list[i].createTime);
+                    let status = data.list[i].status
+                    if(status === 'success'){
+                        data.list[i].format = 'SUCCESS';
+                        data.list[i].color = '#67C23A';
+                    }else if(status === 'fail'){
+                        data.list[i].format = 'FAIL';
+                        data.list[i].color = '#E6A23C';
+                    }else if(status === 'error'){
+                        data.list[i].format = 'ERROR';
+                        data.list[i].color = '#F56C6C';
+                    }else if(status === 'skip'){
+                        data.list[i].format = 'SKIP';
+                        data.list[i].color = '#535457';
+                    }else if(status === 'prepared'){
+                        data.list[i].format = '等待执行';
+                        data.list[i].color = '#409EFF';
+                    }else if(status === 'running'){
+                        data.list[i].format = "RUNNING";
+                        data.list[i].color = '#409EFF';
+                    }else if(status === 'discontinue'){
+                        data.list[i].format = "已终止";
+                        data.list[i].color = '#535457';
+                    }
+                    data.list[i].index = (row.pageparam.currentPage-1) * row.pageparam.pageSize + i+1;
                 }
-                data.list[i].index = (row.pageparam.currentPage - 1) * row.pageparam.pageSize + i + 1;
-              }
-              if(data.list.length===0 || !['prepared', 'running'].includes(data.list[0].status)){
-                // 如果没有报过，或者第一个运行的状态不是等待中，或者运行中,结束定时器执行请求接口的任务
-                window.clearInterval(this.timerMap.get(row));
-              }
-
-              row.reportData = data.list;
-              row.pageparam.total = data.total;
+                if(data.list.length===0 || !['prepared', 'running'].includes(data.list[0].status)){
+                  // 如果没有报过，或者第一个运行的状态不是等待中，或者运行中,结束定时器执行请求接口的任务
+                  window.clearInterval(this.timerMap.get(row));
+                }
+                row.reportData = data.list;
+                row.pageparam.total = data.total;
             });
         },
         expandSelect(row, expandedRows) {
-            if(expandedRows.length != 0){
-                this.getReports(row);
+            if(expandedRows.indexOf(row) === -1){  //关闭行
+                this.expands.splice(this.expands.indexOf(row.id), 1);
+            } else{ // 打开行
+                if(this.expands.indexOf(row.id) === -1){
+                    this.expands.push(row.id);
+                    this.getReportData(row);
+                }
             }
+
             // 获得表格中的每个集合展开收起状态
             if(!this.rowMap.has(row)){
               this.rowMap.set(row, true);
@@ -243,7 +249,7 @@ export default {
                 if(response.data.hasApple){
                     this.deviceSystem = "apple";
                 }
-
+                // this.runRow = row;
                 // this.runForm.engineId = 'system';
                 this.runForm.environmentId = null;
                 this.runForm.deviceId = null;
@@ -265,11 +271,11 @@ export default {
             this.$post(url, runForm, response =>{
                 this.$message.success("执行成功 执行结果请查看报告");
                 // 集合执行完成后判断当前列是否是展开的，如果是展开的，刷新列表，更新执行进度
-                if(this.rowMap.get(this.currentRow)){
-                  setTimeout(() => {
-                    this.getReports(this.currentRow);
-                  }, 1000);
-                }
+                this.expands.push(this.currentRow.id);
+                setTimeout(() => {
+                  this.getReports(this.currentRow);
+                }, 1000);
+
             });
             this.runVisible = false;
         },

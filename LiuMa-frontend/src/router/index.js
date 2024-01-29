@@ -270,16 +270,16 @@ export default new Router({
                 requireAuth: true
             }
         },{
+          path: '/caseCenter/caseManage/apiCase/add/:moduleId',
+          name: 'API用例新增',
+          component: ApiCaseEdit,
+          meta: {
+            requirePerm: "NORMAL_MENU",
+            requireAuth: true
+          }
+        },{
             path: '/caseCenter/caseManage/apiCase/:type/:caseId',
             name: 'API用例编辑',
-            component: ApiCaseEdit,
-            meta: {
-                requirePerm: "NORMAL_MENU",
-                requireAuth: true
-            }
-        },{
-            path: '/caseCenter/caseManage/apiCase/:type',
-            name: 'API用例新增',
             component: ApiCaseEdit,
             meta: {
                 requirePerm: "NORMAL_MENU",

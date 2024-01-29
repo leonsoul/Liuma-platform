@@ -27,15 +27,15 @@
             </el-table-column>
             <el-table-column prop="num" label="NO" width="80">
             </el-table-column>
-            <el-table-column prop="name" label="用例名称" min-width="160">
+            <el-table-column prop="name" label="用例名称" min-width="160" :show-overflow-tooltip="true">
             </el-table-column>
-            <el-table-column prop="type" label="用例类型">
+            <el-table-column prop="type" label="用例类型" width="100">
                 <template slot-scope="scope">
                     <span v-if="scope.row.type==='APP'">{{scope.row.type}}({{scope.row.system}})</span>
                     <span v-else>{{scope.row.type}}</span>
                 </template>
             </el-table-column>
-            <el-table-column prop="moduleName" label="所属模块" width="120">
+            <el-table-column prop="moduleName" label="所属模块" width="120" :show-overflow-tooltip="true">
             </el-table-column>
         </el-table>
         <!-- 分页组件 -->
@@ -93,6 +93,7 @@ export default {
         getModule(){
             let url = '/autotest/module/list/case/' + this.$store.state.projectId;
             this.$get(url, response =>{
+                response.data.unshift({id: "0", name:"默认模块", label: "默认模块"});
                 this.modules = response.data;
             });
         },
@@ -110,6 +111,11 @@ export default {
                 let data = response.data;
                 this.caseListData = data.list;
                 this.loading = false;
+                for(let i=0;i<data.list.length;i++){
+                    if(data.list[i].moduleId==='0'){
+                        data.list[i].moduleName='默认模块';
+                    }
+                }
                 // 分页赋值
                 this.pageParam.currentPage = this.searchForm.page;
                 this.pageParam.pageSize = this.searchForm.limit;
@@ -129,7 +135,7 @@ export default {
         // 重置按钮
         reset() {
             this.searchForm.condition = "";
-            thhis.searchForm.caseType = "";
+            this.searchForm.caseType = "";
             this.searchForm.moduleId = "";
             this.searchForm.moduleName = "";
             this.getdata(this.searchForm);

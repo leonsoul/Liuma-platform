@@ -3,9 +3,9 @@
  */
 <template>
   <div>
-    <page-header title="用例编辑" :showDebug="true" :cancel="cancelAdd" :debug="debugCase" :save="saveAdd"/>
+    <page-header title="编辑用例" :showDebug="true" :cancel="cancelAdd" :debug="debugCase" :save="saveAdd"/>
     <el-form ref="caseForm" :rules="rules" :model="caseForm" label-width="90px">
-        <base-info :caseForm="caseForm" :applications=[] v-on:getUseFunction="getUseFunction" v-on:callbackUseFunctionDetail="callbackUseFunctionDetail" v-on:callbackUseParamDetail="callbackUseParamDetail"/>
+    <base-info :caseForm="caseForm" :applications=[] v-on:getUseFunction="getUseFunction" v-on:callbackUseFunctionDetail="callbackUseFunctionDetail" v-on:callbackUseParamDetail="callbackUseParamDetail"/>
     <p class="tip">接口请求
       <el-button v-if="taskId" style="float:right;"  @click="resultVisable=true ">查看当前调试请求记录</el-button>
     </p>
@@ -65,7 +65,8 @@
         </div>
     </el-dialog>
     <!-- 接口编辑界面 -->
-    <el-drawer title="接口详情" :visible.sync="editCaseApiVisible"  direction="rtl" :with-header="false" destroy-on-close  :closeOnPressEscape="false" :wrapperClosable="false" size="900px">
+    <el-drawer title="接口详情" :visible.sync="editCaseApiVisible" direction="rtl" :with-header="false"
+               destroy-on-close  :closeOnPressEscape="false" size="920px" :wrapperClosable="false">
         <div class="api-drawer-header">
             <span style="float: left; font-size: 16px;">接口详情编辑</span>
             <div style="float: right;">
@@ -77,21 +78,7 @@
         <div class="api-drawer-body">
             <el-form v-if="isAddApi" ref="caseApiForm" :rules="apiRules" :model="caseApiForm" label-width="80px">
                 <el-row :gutter="20">
-                    <el-col :span="14">
-                        <el-form-item label="接口名称" prop="name">
-                            <el-input  size="small" v-model="caseApiForm.name" placeholder="请输入接口名称"/>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="10">
-                        <el-form-item label="请求协议" prop="protocol">
-                            <el-select size="small" style="width:100%" v-model="caseApiForm.protocol" placeholder="请选择请求协议">
-                                <el-option v-for="item in protocols" :key="item" :label="item" :value="item"/>
-                            </el-select>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-                <el-row :gutter="20">
-                    <el-col :span="14">
+                    <el-col :span="16">
                         <el-form-item label="接口请求" prop="path">
                             <el-input size="small" v-model="caseApiForm.path" placeholder="请输入接口地址" style="margin-top: 5px">
                                 <el-select v-model="caseApiForm.method" slot="prepend" style="width: 80px" size="small">
@@ -100,7 +87,21 @@
                             </el-input>
                         </el-form-item>
                     </el-col>
-                    <el-col :span="10">
+                    <el-col :span="8">
+                        <el-form-item label="请求协议" prop="protocol">
+                            <el-select size="small" style="width:100%" v-model="caseApiForm.protocol" placeholder="请选择请求协议">
+                                <el-option v-for="item in protocols" :key="item" :label="item" :value="item"/>
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row :gutter="20">
+                    <el-col :span="16">
+                        <el-form-item label="接口名称" prop="name">
+                            <el-input  size="small" v-model="caseApiForm.name" placeholder="请输入接口名称"/>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="8">
                         <el-form-item label="域名标识" prop="domainSign">
                             <el-select style="width:100%" size="small" v-model="caseApiForm.domainSign" clearable placeholder="请选择域名标识">
                                 <el-option v-for="item in domains" :key="item.id" :label="item.name" :value="item.id"/>
@@ -109,12 +110,12 @@
                     </el-col>
                 </el-row>
                 <el-row :gutter="20">
-                    <el-col :span="14">
+                    <el-col :span="16">
                         <el-form-item label="接口描述">
                             <el-input size="small" clearable placeholder="请输入接口描述" v-model="caseApiForm.description"/>
                         </el-form-item>
                     </el-col>
-                    <el-col :span="10">
+                    <el-col :span="8">
                         <el-form-item label="模块分类" prop="moduleId">
                             <select-tree style="width:100%" placeholder="请选择模块分类" :selectedValue="caseApiForm.moduleId"
                                 :selectedLabel="caseApiForm.moduleName" :treeData="modules" @selectModule="selectModule($event)"/>
@@ -122,6 +123,11 @@
                     </el-col>
                 </el-row>
             </el-form>
+            <el-input v-else size="small" disabled v-model="caseApiForm.apiPath" placeholder="请输入接口地址" style="margin-top: 5px">
+                <el-select v-model="caseApiForm.apiMethod" slot="prepend" style="width: 80px" size="small">
+                    <el-option v-for="item in methods" :key="item" :label="item" :value="item"/>
+                </el-select>
+            </el-input>
             <el-tabs style="width: 100%" v-model="activeTab">
                 <el-tab-pane label="请求头" name="header">
                     <request-header :reqHeader="caseApiForm.header" style="width: 100%"/>
@@ -129,21 +135,33 @@
                 <el-tab-pane label="请求体" name="body">
                     <request-body :caseForm="caseForm" :reqBody="caseApiForm.body" :supplementationList="supplementationList"  style="width: 100%"/>
                 </el-tab-pane>
-                <el-tab-pane label="QUERY参数" name="query">
+                <el-tab-pane label="查询参数" name="query">
                     <request-query :reqQuery="caseApiForm.query" :reqBody="caseApiForm.body" :supplementationList="supplementationList" style="width: 100%"/>
                 </el-tab-pane>
-                <el-tab-pane label="REST参数" name="rest">
+                <el-tab-pane label="路径参数" name="rest">
                     <request-rest :reqRest="caseApiForm.rest" :supplementationList="supplementationList" style="width: 100%"/>
                 </el-tab-pane>
-                <el-tab-pane label="响应断言" name="assertion">
+                <el-tab-pane label="断言" name="assertion">
                     <assertion :assertion="caseApiForm.assertion" :apiId="caseApiForm.apiId" :supplementationList="supplementationList" style="width: 100%"/>
                 </el-tab-pane>
-                <el-tab-pane label="关联取值" name="relation">
+                <el-tab-pane label="关联" name="relation">
                     <relation :relation="caseApiForm.relation" :apiId="caseApiForm.apiId" style="width: 100%"/>
                 </el-tab-pane>
-                <el-tab-pane label="逻辑控件" name="controller">
-                    <controller :controller="caseApiForm.controller" :functionListDetail="functionListDetail" @editCodeCharge="editCodeCharge" style="width: 100%"/>
+                <el-tab-pane label="前置脚本" name="pres">
+                    <pre-script :pres="caseApiForm.pres" style="width: 100%"/>
                 </el-tab-pane>
+                <el-tab-pane label="后置脚本" name="posts">
+                    <post-script :posts="caseApiForm.posts" style="width: 100%"/>
+                </el-tab-pane>
+                <el-tab-pane label="请求设置" name="settings">
+                    <api-setting :settings="caseApiForm.settings" style="width: 100%"/>
+                </el-tab-pane>
+                <el-tab-pane label="逻辑控制" name="logics">
+                    <logic-control :logics="caseApiForm.logics" style="width: 100%"/>
+                </el-tab-pane>
+<!--                <el-tab-pane label="逻辑控件" name="controller">-->
+<!--                    <controller :controller="caseApiForm.controller" :functionListDetail="functionListDetail" @editCodeCharge="editCodeCharge" style="width: 100%"/>-->
+<!--                </el-tab-pane>-->
             </el-tabs>
         </div>
     </el-drawer>
@@ -166,14 +184,20 @@ import RequestRest from './common/api/requestRest'
 import RequestBody from './common/api/requestBody'
 import Assertion from './common/case/assertion'
 import Relation from './common/case/relation'
-import Controller from './common/case/controller'
+// import Controller from './common/case/controller'
+import LogicControl from './common/case/logicControl'
+import PreScript from './common/case/preScript'
+import PostScript from './common/case/postScript'
+import ApiSetting from './common/case/apiSetting'
 import RunForm from '@/views/common/business/runForm'
 import RunResult from './common/case/runResult'
 import SelectTree from '@/views/common/business/selectTree'
 
 export default {
     components:{PageHeader, BaseInfo, SelectApi, RequestHeader, RequestQuery, SelectTree,
-    RequestRest,RequestBody, Assertion, Relation, Controller, RunForm, RunResult},
+    RequestRest,RequestBody, Assertion, Relation, LogicControl, RunForm, RunResult,
+    PreScript, PostScript, ApiSetting},
+// ,Controller
     data() {
         return{
             caseForm: {
@@ -204,7 +228,11 @@ export default {
                 query: [],
                 assertion: [],
                 relation: [],
-                controller: []
+                controller: [],
+                pres: [],
+                posts: [],
+                settings: [],
+                logics: []
             },
             caseApiFormCopy:{},
             caseApiIndexCopy: 0,
@@ -245,7 +273,10 @@ export default {
         this.$root.Bus.$emit('initBread', ["用例中心", "接口用例"]);
         this.getDomain();
         this.getModule();
-        this.getDetail(this.$route.params);
+        setTimeout(()=>{
+          this.getDetail(this.$route);
+        },2000);
+
     },
     async mounted() {
       //行拖拽方法
@@ -350,7 +381,11 @@ export default {
                 rest: [],
                 assertion: [],
                 relation: [],
-                controller: []
+                controller: [],
+                pres: [],
+                posts: [],
+                settings: [],
+                logics: []
             };
             this.editCaseApiVisible = true;
         },
@@ -372,6 +407,7 @@ export default {
             this.isAddApi = false;
             this.activeTab = "body";
             if(!caseApi.body){
+                // 如果body中没有值，使用默认值，请求接口获得接口信息
                 let url = "/autotest/api/detail/" + caseApi.apiId;
                 this.$get(url, response =>{
                     let data = response.data;
@@ -394,10 +430,60 @@ export default {
                     caseApi.assertion = [];
                     caseApi.relation = [];
                     caseApi.controller = [];
+                    // 增加了三种控件配置
+                    caseApi.pres = [];
+                    caseApi.posts = [];
+                    caseApi.settings = [];
+                    caseApi.logics = [];
                     this.caseApiForm = caseApi;
                     this.editCaseApiVisible = true;
                 });
             }else{
+
+                let controller = JSON.parse(JSON.stringify(caseApi.controller));
+                // todo 处理老数据->需要判断是否是新写的接口来进行判断
+                caseApi.pres = [];
+                caseApi.posts = [];
+                caseApi.settings = [];
+                caseApi.logics = [];
+                let preIndex = 1;
+                let postIndex = 1;
+                for(let i=0; i<controller.length; i++){
+                    switch(controller[i].name) {
+                        case 'preScript':
+                            controller[i].index = preIndex;
+                            controller[i].edit = false;
+                            preIndex = preIndex+1;
+                            caseApi.pres.push(controller[i]);
+                            break;
+                        case 'preSql':
+                            controller[i].index = preIndex;
+                            controller[i].edit = false;
+                            preIndex = preIndex+1;
+                            caseApi.pres.push(controller[i]);
+                            break;
+                        case 'postScript':
+                            controller[i].index = postIndex;
+                            controller[i].edit = false;
+                            postIndex = postIndex+1;
+                            caseApi.posts.push(controller[i]);
+                            break;
+                        case 'postSql':
+                            controller[i].index = postIndex;
+                            controller[i].edit = false;
+                            postIndex = postIndex+1;
+                            caseApi.posts.push(controller[i]);
+                            break;
+                        case 'whetherExec':
+                            caseApi.logics.push(controller[i]);
+                            break;
+                        case 'loopExec':
+                            caseApi.logics.push(controller[i]);
+                            break;
+                        default:
+                            caseApi.settings.push(controller[i]);
+                    }
+                }
                 this.caseApiForm = caseApi;
                 this.editCaseApiVisible = true;
             }
@@ -412,13 +498,20 @@ export default {
             this.editCaseApiVisible = false;
         },
         saveCaseApi(){
+          // 判断是否是新增接口
             if(this.isAddApi){
+                // 是新增接口
                 this.$refs["caseApiForm"].validate(valid => {
                     if (valid) {
                         this.caseApiForm.projectId = this.$store.state.projectId;
                         let url = '/autotest/api/save';
                         this.$post(url, this.caseApiForm, response =>{
                             this.$message.success("接口新增成功");
+                            this.caseApiForm.controller = [];
+                            this.caseApiForm.controller.push(...this.caseApiForm.logics);
+                            this.caseApiForm.controller.push(...this.caseApiForm.pres);
+                            this.caseApiForm.controller.push(...this.caseApiForm.posts);
+                            this.caseApiForm.controller.push(...this.caseApiForm.settings);
                             let caseApi = {
                                 id: getUUID(),
                                 index: this.caseForm.caseApis.length+1,
@@ -444,6 +537,12 @@ export default {
                     }
                 });
             }else{
+                // 将窗口关闭,在caseApiForm中加入接口中的控制信息
+                this.caseApiForm.controller = [];
+                this.caseApiForm.controller.push(...this.caseApiForm.logics);
+                this.caseApiForm.controller.push(...this.caseApiForm.pres);
+                this.caseApiForm.controller.push(...this.caseApiForm.posts);
+                this.caseApiForm.controller.push(...this.caseApiForm.settings);
                 this.editCaseApiVisible = false;
             }
         },
@@ -461,6 +560,7 @@ export default {
             this.caseForm.caseApis.push(caseApi);
         },
         banCaseApi(index){
+            // 禁用接口
             if(this.caseForm.caseApis[index].isBan === true){
               this.$set( this.caseForm.caseApis[index],'isBan',false);
             }
@@ -516,14 +616,16 @@ export default {
             });
         },
         getModule(){
+            // 获得项目中的所有接口模块
             let url = '/autotest/module/list/api/' + this.$store.state.projectId;
             this.$get(url, response =>{
+                response.data.unshift({id: "0", name:"默认模块", label: "默认模块"});
                 this.modules = response.data;
             });
         },
-        getDetail(param){
-            if (param.caseId){  // 编辑
-                let url = "/autotest/case/detail/api/" + param.caseId;
+        getDetail(route){
+            if (route.params.caseId){  // 编辑
+                let url = "/autotest/case/detail/api/" + route.params.caseId;
                 this.$get(url, response => {
                     let data = response.data;
                     if(data.moduleId==='0'){
@@ -560,13 +662,40 @@ export default {
                             caseApi.controller = JSON.parse(caseApi.controller);
                         }
                     }
-                    if(param.type === "copy"){ //复用
+                    if(route.params.type === "copy"){ //复用
                         data.id = "";
                     }
                     this.caseForm = data;
                     this.addSupplementationList('relation');
                 });
             }
+            if(route.name === "API用例新增"){
+              if(route.params.moduleId){
+                // this.$set(this.caseForm, "moduleId", route.params.moduleId);
+
+                // this.caseForm.moduleName= this.modules;
+                this.caseForm.moduleId = route.params.moduleId;
+                console.log('获得的模块:', this.modules)
+                this.caseForm.moduleName = this.getModuleNameByModuleId(this.modules, route.params.moduleId)
+                console.log('获得的模块分类:', this.caseForm.moduleName)
+
+              }
+
+            }
+          console.log("测试调整路径", this.caseForm.moduleId);
+        },
+        getModuleNameByModuleId(moduleList, moduleId){
+          moduleList.forEach(function(moduleInfo){
+            if(moduleInfo.id !== "0" && moduleInfo.children.length>0){
+              console.log('对比用例模块id', moduleInfo.id, moduleId, moduleInfo.id === moduleId)
+              console.log(moduleInfo, moduleInfo.children, moduleId)
+              getModuleNameByModuleId( moduleInfo.children, moduleId);
+
+            }
+            if(moduleInfo.id === moduleId){
+              this.caseForm.moduleName = moduleInfo.name;
+            }
+          })
         },
         cancelAdd(){
           // 如果是通过其他页面跳转过来的，点击返回回到用例管理页面

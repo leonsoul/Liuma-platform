@@ -2,6 +2,7 @@ package com.autotest.LiuMa.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.autotest.LiuMa.common.constants.DeviceStatus;
+import com.autotest.LiuMa.common.constants.EngineType;
 import com.autotest.LiuMa.common.constants.ReportSourceType;
 import com.autotest.LiuMa.common.constants.ReportStatus;
 import com.autotest.LiuMa.common.exception.LMException;
@@ -10,8 +11,11 @@ import com.autotest.LiuMa.database.mapper.*;
 import com.autotest.LiuMa.dto.PlanCollectionDTO;
 import com.autotest.LiuMa.dto.TaskDTO;
 import com.autotest.LiuMa.request.RunRequest;
+import com.autotest.LiuMa.websocket.config.WsSessionManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
 
 import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
@@ -41,14 +45,17 @@ public class RunService {
     private DeviceMapper deviceMapper;
 
     @Resource
+    private EngineMapper engineMapper;
+
+    @Resource
     private CollectionMapper collectionMapper;
 
     @Resource
     private DeviceService deviceService;
 
-    public Task run(RunRequest runRequest) {
+    public TaskDTO run(RunRequest runRequest) {
         // 新增任务
-        Task task = new Task();
+        TaskDTO task = new TaskDTO();
         task.setId(UUID.randomUUID().toString());
         // 判断app用例的设备是否可用
         if(runRequest.getDeviceId() != null && !runRequest.getDeviceId().equals("")){
@@ -77,7 +84,7 @@ public class RunService {
             runRequest.setSourceId(debugData.getId());
         }
         // 新增任务，将任务存入数据库中。设置任务id，名称，状态，类型，引擎，项目id，任务执行者，任务更新者，创建时间，更新时间，
-        task = new Task();
+//        task = (TaskDTO) new Task();
         task.setId(UUID.randomUUID().toString());
         String runName = runRequest.getSourceName() +"-"+ new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
         task.setName(runName);
@@ -125,6 +132,27 @@ public class RunService {
         }
         reportStatistics.setTotal(total);
         reportMapper.addReportStatistics(reportStatistics);
+        task.setReportId(report.getId());
+        if(runRequest.getEngineId().equals(EngineType.SYSTEM.toString())){
+            List<Engine> engineList = engineMapper.getAllSystemEngine();
+            for(Engine engine: engineList){ // 通知所有在线的引擎来获取任务
+                try {
+                    WebSocketSession session = WsSessionManager.get("engine", engine.getId());
+                    JSONObject message = new JSONObject();
+                    message.put("type", "start");
+                    session.sendMessage(new TextMessage(message.toString()));
+                }catch (Exception ignored){
+                }
+            }
+        }else {
+            try {
+                WebSocketSession session = WsSessionManager.get("engine", runRequest.getEngineId());
+                JSONObject message = new JSONObject();
+                message.put("type", "start");
+                session.sendMessage(new TextMessage(message.toString()));
+            }catch (Exception ignored){
+            }
+        }
         return task;
     }
 

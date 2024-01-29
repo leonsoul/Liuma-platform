@@ -3,7 +3,7 @@
  */
 <template>
   <div>
-    <page-header title="用例编辑" :showDebug="true" :cancel="cancelAdd" :debug="debugCase" :save="saveAdd"/>
+    <page-header title="编辑用例" :showDebug="true" :cancel="cancelAdd" :debug="debugCase" :save="saveAdd"/>
     <el-form ref="caseForm" :rules="rules" :model="caseForm" label-width="90px">
         <base-info :caseForm="caseForm"/>
     <p class="tip">操作步骤</p>
@@ -470,6 +470,7 @@ export default {
         getPages(){
             let url = '/autotest/module/list/page/' + this.$store.state.projectId;
             this.$get(url, response =>{
+                response.data.unshift({id: "0", name:"默认模块", label: "默认模块"});
                 this.pageModules = response.data;
             });
         },

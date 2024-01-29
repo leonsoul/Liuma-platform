@@ -50,7 +50,7 @@
                     <span v-else>{{scope.row.type}}</span>
                 </template>
             </el-table-column>
-            <el-table-column prop="moduleName" label="所属模块"/>
+            <el-table-column prop="moduleName" label="所属模块" :show-overflow-tooltip="true"/>
             <el-table-column prop="username" label="创建人"/>
             <el-table-column prop="updateTime" label="更新时间"  width="150px"/>
             <el-table-column fixed="right" align="operation" label="操作" width="150px">
@@ -230,6 +230,7 @@ export default {
         getTree(){
             let url = '/autotest/module/list/case/' + this.$store.state.projectId;
             this.$get(url, response =>{
+                response.data.unshift({id: "0", name:"默认模块", label: "默认模块"});
                 this.treeData = response.data;
             });
         },
