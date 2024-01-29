@@ -270,7 +270,7 @@ export default new Router({
                 requireAuth: true
             }
         },{
-          path: '/caseCenter/caseManage/apiCase/add/:moduleId',
+          path: '/caseCenter/caseManage/apiCase/add/:moduleId/:moduleName',
           name: 'API用例新增',
           component: ApiCaseEdit,
           meta: {

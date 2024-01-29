@@ -273,10 +273,7 @@ export default {
         this.$root.Bus.$emit('initBread', ["用例中心", "接口用例"]);
         this.getDomain();
         this.getModule();
-        setTimeout(()=>{
-          this.getDetail(this.$route);
-        },2000);
-
+        this.getDetail(this.$route);
     },
     async mounted() {
       //行拖拽方法
@@ -670,32 +667,12 @@ export default {
                 });
             }
             if(route.name === "API用例新增"){
-              if(route.params.moduleId){
-                // this.$set(this.caseForm, "moduleId", route.params.moduleId);
-
-                // this.caseForm.moduleName= this.modules;
+              // 将默认的模块分类修改为选中的模块分类
+              if(route.params.moduleId && route.params.moduleName){
                 this.caseForm.moduleId = route.params.moduleId;
-                console.log('获得的模块:', this.modules)
-                this.caseForm.moduleName = this.getModuleNameByModuleId(this.modules, route.params.moduleId)
-                console.log('获得的模块分类:', this.caseForm.moduleName)
-
+                this.caseForm.moduleName = route.params.moduleName;
               }
-
             }
-          console.log("测试调整路径", this.caseForm.moduleId);
-        },
-        getModuleNameByModuleId(moduleList, moduleId){
-          moduleList.forEach(function(moduleInfo){
-            if(moduleInfo.id !== "0" && moduleInfo.children.length>0){
-              console.log('对比用例模块id', moduleInfo.id, moduleId, moduleInfo.id === moduleId)
-              console.log(moduleInfo, moduleInfo.children, moduleId)
-              getModuleNameByModuleId( moduleInfo.children, moduleId);
-
-            }
-            if(moduleInfo.id === moduleId){
-              this.caseForm.moduleName = moduleInfo.name;
-            }
-          })
         },
         cancelAdd(){
           // 如果是通过其他页面跳转过来的，点击返回回到用例管理页面
@@ -725,7 +702,7 @@ export default {
                         if(this.$route.params.type === 'copy'){
                           this.$router.push({path: '/caseCenter/caseManage'});
                         }
-                        else if(this.$route.params.type === 'add'){
+                        else if(this.$route.name === "API用例新增"){
                           this.$router.push({path: '/caseCenter/caseManage'});
                         }
                         else{

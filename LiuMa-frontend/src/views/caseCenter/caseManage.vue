@@ -119,7 +119,8 @@ export default {
                 condition: "",
                 caseType: "",
                 moduleId: "",
-                system: ""
+                system: "",
+                moduleName: ""
             },
             caseListData: [],
             pageParam: {
@@ -160,6 +161,7 @@ export default {
             this.$store.moduleId = data.id;
             this.searchForm.moduleId = data.id;
             this.searchForm.page = 1;
+            this.searchForm.moduleName = data.name;
             this.getdata(this.searchForm);
         },
         // 添加模块
@@ -288,14 +290,13 @@ export default {
             this.newCaseType = "API";
             this.caseVisible = true;
         },
-        // 提交用例保存
+        // 增加用例
         submitCase() {
             if (this.newCaseType == "API"){
-                console.log(this.searchForm.moduleId)
                 if(this.searchForm.moduleId)
-                  this.$router.push({path: '/caseCenter/caseManage/apiCase/add/'+this.searchForm.moduleId});
+                  this.$router.push({path: '/caseCenter/caseManage/apiCase/add/'+this.searchForm.moduleId+'/'+this.searchForm.moduleName});
                 else
-                  this.$router.push({path: '/caseCenter/caseManage/apiCase/add/'+'0'});
+                  this.$router.push({path: '/caseCenter/caseManage/apiCase/add/'+'0'+'/'+'默认模块'});
             }else if (this.newCaseType == "WEB"){
                 this.$router.push({path: '/caseCenter/caseManage/webCase/add'});
             }else if (this.newCaseType == "ANDROID"){
