@@ -72,7 +72,7 @@
             <div style="float: right;">
               <el-button size="small"  @click="confirmApiCancel">取消</el-button>
               <el-button v-if="isAddApi" size="small" type="primary" style="float: right;" @click="saveCaseApi">保存</el-button>
-              <el-button v-else size="small" type="primary"  @click="confirmApiSave">确定</el-button>
+              <el-button v-else size="small" type="primary"  @click="saveCaseApi">确定</el-button>
             </div>
         </div>
         <div class="api-drawer-body">
@@ -438,7 +438,6 @@ export default {
             }else{
 
                 let controller = JSON.parse(JSON.stringify(caseApi.controller));
-                // todo 处理老数据->需要判断是否是新写的接口来进行判断
                 caseApi.pres = [];
                 caseApi.posts = [];
                 caseApi.settings = [];
@@ -496,44 +495,50 @@ export default {
         },
         saveCaseApi(){
           // 判断是否是新增接口
-            if(this.isAddApi){
-                // 是新增接口
-                this.$refs["caseApiForm"].validate(valid => {
-                    if (valid) {
-                        this.caseApiForm.projectId = this.$store.state.projectId;
-                        let url = '/autotest/api/save';
-                        this.$post(url, this.caseApiForm, response =>{
-                            this.$message.success("接口新增成功");
-                            this.caseApiForm.controller = [];
-                            this.caseApiForm.controller.push(...this.caseApiForm.logics);
-                            this.caseApiForm.controller.push(...this.caseApiForm.pres);
-                            this.caseApiForm.controller.push(...this.caseApiForm.posts);
-                            this.caseApiForm.controller.push(...this.caseApiForm.settings);
-                            let caseApi = {
-                                id: getUUID(),
-                                index: this.caseForm.caseApis.length+1,
-                                apiId: response.data,
-                                apiMethod: this.caseApiForm.method,
-                                apiName: this.caseApiForm.name,
-                                apiPath: this.caseApiForm.path,
-                                description: this.caseApiForm.description,
-                                header: this.caseApiForm.header,
-                                body: this.caseApiForm.body,
-                                query: this.caseApiForm.query,
-                                rest: this.caseApiForm.rest,
-                                assertion: this.caseApiForm.assertion,
-                                relation: this.caseApiForm.relation,
-                                controller: this.caseApiForm.controller,
-                                edit: false
-                            };
-                            this.caseForm.caseApis.push(caseApi);
-                            this.editCaseApiVisible = false;
-                        });
-                    }else{
-                        return false;
-                    }
-                });
-            }else{
+              if(this.isAddApi){
+                  // 是新增接口
+                  this.$refs["caseApiForm"].validate(valid => {
+                      if (valid) {
+                          this.caseApiForm.projectId = this.$store.state.projectId;
+                          let url = '/autotest/api/save';
+                          this.$post(url, this.caseApiForm, response =>{
+                              this.$message.success("接口新增成功");
+                              this.caseApiForm.controller = [];
+                              this.caseApiForm.controller.push(...this.caseApiForm.logics);
+                              this.caseApiForm.controller.push(...this.caseApiForm.pres);
+                              this.caseApiForm.controller.push(...this.caseApiForm.posts);
+                              this.caseApiForm.controller.push(...this.caseApiForm.settings);
+                              let caseApi = {
+                                  id: getUUID(),
+                                  index: this.caseForm.caseApis.length+1,
+                                  apiId: response.data,
+                                  apiMethod: this.caseApiForm.method,
+                                  apiName: this.caseApiForm.name,
+                                  apiPath: this.caseApiForm.path,
+                                  description: this.caseApiForm.description,
+                                  header: this.caseApiForm.header,
+                                  body: this.caseApiForm.body,
+                                  query: this.caseApiForm.query,
+                                  rest: this.caseApiForm.rest,
+                                  assertion: this.caseApiForm.assertion,
+                                  relation: this.caseApiForm.relation,
+                                  controller: this.caseApiForm.controller,
+                                  edit: false
+                              };
+                              this.caseForm.caseApis.push(caseApi);
+                              this.editCaseApiVisible = false;
+                          });
+                      }else{
+                          return false;
+                      }
+                  });
+              }else{
+
+                if(this.isCodeEdit === true){
+                  this.isCodeEdit = false;
+                  this.$message.warning('正在进行编辑，再次点击确定能够进行保存，不会保存当前代码数据');
+
+                }
                 // 将窗口关闭,在caseApiForm中加入接口中的控制信息
                 this.caseApiForm.controller = [];
                 this.caseApiForm.controller.push(...this.caseApiForm.logics);

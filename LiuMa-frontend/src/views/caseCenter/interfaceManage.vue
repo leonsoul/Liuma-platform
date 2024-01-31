@@ -82,13 +82,13 @@
       </div>
     </el-dialog>
     <!-- 自动生成用例配置 -->
-    <el-drawer :visible.sync="editRuleVisible" direction="rtl" :with-header="false" destroy-on-close size="920px">
+    <el-drawer :visible.sync="editRuleVisible" direction="rtl" :with-header="false" destroy-on-close size="1000px">
         <div class="api-drawer-header">
             <span style="float: left; font-size: 16px;">生成规则配置</span>
             <el-button size="small" type="primary" style="float: right;" @click="submitRuleForm(paramRuleForm)">确定</el-button>
         </div>
         <div class="api-drawer-body">
-            <autocase :paramRuleForm="paramRuleForm"/>
+            <autocase :paramRuleForm="paramRuleForm" @childEvent="handleChildEvent"/>
         </div>
     </el-drawer>
     <!-- 查找使用到当前接口的用例 -->
@@ -199,8 +199,13 @@ export default {
                 rest: [],
                 positiveAssertion: [],
                 oppositeAssertion: [],
-                controller: []
-            }
+                controller: [],
+                pres:[],
+                posts:[],
+                settings:[],
+                logics:[]
+            },
+            isEmpty: false
         }
     },
     created() {
@@ -314,7 +319,7 @@ export default {
         removeModule(args) {
             let node = args[0];
             let data = args[1];
-            if(data.children.length != 0){
+            if(data.children.length !== 0){
                 this.$message.warning("当前模块有子模块, 无法删除");
                 return;
             }
@@ -475,7 +480,10 @@ export default {
           this.paramRuleForm.body = [];
           this.paramRuleForm.query = [];
           this.paramRuleForm.rest = [];
-          this.paramRuleForm.positiveAssertion = [];
+          this.paramRuleForm.settings = [];
+          this.paramRuleForm.pres = [];
+          this.paramRuleForm.posts = [];
+          this.paramRuleForm.logics = [];
           this.paramRuleForm.oppositeAssertion = [];
           this.editRuleVisible = true;
         },
@@ -491,11 +499,19 @@ export default {
         },
         // 提交自动用例规则
         submitRuleForm(form){
-          if(form.positiveAssertion.length === 0 | form.oppositeAssertion.length === 0){
+          if(this.isEmpty){
+            this.editRuleVisible = false;
+            return;
+          }
+          if(form.positiveAssertion.length === 0 || form.oppositeAssertion.length === 0){
             this.$message.warning("请至少维护一条正向断言以及逆向断言");
             return;
           }
           let url = '/autotest/case/auto/generate';
+          form.controller.push(...form.logics);
+          form.controller.push(...form.pres);
+          form.controller.push(...form.posts);
+          form.controller.push(...form.settings);
           this.$post(url, form, response => {
               this.$message.success("生成成功 前往用例管理页查看");
               this.editRuleVisible = false;
@@ -522,6 +538,9 @@ export default {
               moduleId: [{ required: true, message: '导入模块不能为空', trigger: 'blur' }]
           };
         },
+        handleChildEvent(data){
+          this.isEmpty = data;
+        }
     }
 }
 </script>

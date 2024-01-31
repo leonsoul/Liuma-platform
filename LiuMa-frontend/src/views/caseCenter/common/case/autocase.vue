@@ -27,9 +27,21 @@
             <el-tab-pane label="逆向断言" name="opposite">
                 <assertion :assertion="paramRuleForm.oppositeAssertion" :apiId="paramRuleForm.apiId" style="width: 100%"/>
             </el-tab-pane>
-            <el-tab-pane label="逻辑控件" name="controller">
-              <controller :controller="paramRuleForm.controller" style="width: 100%"/>
-            </el-tab-pane>
+          <el-tab-pane label="前置脚本" name="pres">
+            <pre-script :pres="paramRuleForm.pres" style="width: 100%"/>
+          </el-tab-pane>
+          <el-tab-pane label="后置脚本" name="posts">
+            <post-script :posts="paramRuleForm.posts" style="width: 100%"/>
+          </el-tab-pane>
+          <el-tab-pane label="请求设置" name="settings">
+            <api-setting :settings="paramRuleForm.settings" style="width: 100%"/>
+          </el-tab-pane>
+          <el-tab-pane label="逻辑控制" name="logics">
+            <logic-control :logics="paramRuleForm.logics" style="width: 100%"/>
+          </el-tab-pane>
+<!--            <el-tab-pane label="逻辑控件" name="controller">-->
+<!--              <controller :controller="paramRuleForm.controller" style="width: 100%"/>-->
+<!--            </el-tab-pane>-->
         </el-tabs>
     </div>
 </template>
@@ -38,12 +50,16 @@ import RequestParamRule from '../api/requestParamRule'
 import Assertion from './assertion'
 import {toJsonPath} from '@/utils/jsonPath'
 import Controller from "./controller.vue";
+import LogicControl from "./logicControl.vue";
+import PreScript from "./preScript.vue";
+import PostScript from "./postScript.vue";
+import ApiSetting from "./apiSetting.vue";
 export default {
     name: 'Autocase',
     props:{
         paramRuleForm: Object
     },
-    components: {Controller, RequestParamRule, Assertion },
+    components: {ApiSetting, PostScript, PreScript, LogicControl, Controller, RequestParamRule, Assertion },
     data() {
         return{
             activeTab: "body",
@@ -70,21 +86,22 @@ export default {
                 if(data.rest){
                     data.rest = JSON.parse(data.rest);
                 }
-                if(data.body.type === 'json' & data.body.json !== ''){  //仅支持form格式以及json格式的请求体
+                if(data.body.type === 'json' && data.body.json !== ''){  //仅支持form格式以及json格式的请求体
                     let arr = [];
                     toJsonPath(arr, JSON.parse(data.body.json), "$");
                     this.filterPath(arr, this.paramRuleForm.body);
-                }else if(data.body.type === 'form-data' | data.body.type === 'form-urlencoded'){
+                }else if(data.body.type === 'form-data' || data.body.type === 'form-urlencoded'){
                     this.toRuleForm(data.body.form, this.paramRuleForm.body);
                 }
                 // 处理数据
                 this.toRuleForm(data.header, this.paramRuleForm.header);
                 this.toRuleForm(data.query, this.paramRuleForm.query);
                 this.toRuleForm(data.rest, this.paramRuleForm.rest);
-                if(this.paramRuleForm.header.length === 0 & this.paramRuleForm.body.length === 0 &
-                this.paramRuleForm.query.length === 0 & this.paramRuleForm.rest.length === 0){
+                if(this.paramRuleForm.header.length === 0 && this.paramRuleForm.body.length === 0 &&
+                this.paramRuleForm.query.length === 0 && this.paramRuleForm.rest.length === 0){
                     this.isEmpty = true;
                 }
+                this.$emit('childEvent', this.isEmpty);
             });
         },
         toRuleForm(oldArr, newArr){

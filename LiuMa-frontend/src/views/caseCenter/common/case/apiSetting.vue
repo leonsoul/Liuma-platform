@@ -8,7 +8,7 @@
             <el-table-column label="设置说明" prop="desc" width="280"/>
             <el-table-column label="是否启用" width="80">
                 <template slot-scope="scope">
-                    <el-switch v-model="scope.row.enable" active-color="#13ce66" inactive-color="#ff4949" @change="changeEnable(scope.row)"/>                
+                    <el-switch v-model="scope.row.enable" active-color="#13ce66" inactive-color="#ff4949" @change="changeEnable(scope.row)"/>
                 </template>
             </el-table-column>
             <el-table-column label="配置值" prop="value">
@@ -25,6 +25,13 @@
                         <el-input :disabled="!scope.row.enable" size="mini" style="width:100px" v-model="scope.row.value.password"
                          @change="changeValue(scope.row)" placeholder="登录密码"/>
                     </div>
+                    <el-select :disabled="!scope.row.enable" v-else-if="scope.row.name === 'encryption'" style="width: 95%" v-model="scope.row.value">
+                      <el-option v-for="item in signOptList" :key="item.value" :label="item.label" :value="item.value"/>
+                    </el-select>
+                  <el-select :disabled="!scope.row.enable" v-else-if="scope.row.name === 'from'" style="width: 95%" v-model="scope.row.value">
+                    <el-option v-for="item in fromOptList" :key="item.value" :label="item.label" :value="item.value"/>
+                  </el-select>
+                  <el-input :disabled="!scope.row.enable" v-else-if="scope.row.name === 'token'" style="width: 95%" v-model="scope.row.value"> </el-input>
                     <div v-else>
                         <el-radio-group :disabled="!scope.row.enable" v-model="scope.row.value"  @change="changeValue(scope.row)">
                             <el-radio :label="true">开启</el-radio>
@@ -45,6 +52,9 @@ export default {
     data() {
         return{
             settingsList:[
+                {label: "接口加密方式", name: "encryption", enable:false, value: "setting", desc: "使用的接口加密方式"},
+                {label: "使用token", name: "token", enable:false, value: "{{token}}", desc: "请求时使用token"},
+                {label: "请求来源", name: "from", enable:false, value: "100101", desc: "接口请求来源"},
                 {label: "超时时间", name: "timeout", enable:false, value: 30, desc: "接口请求超时时间"},
                 {label: "前置等待", name: "sleepBeforeRun", enable:false, value: 0, desc: "设置发送请求前的等待时间"},
                 {label: "后置等待", name: "sleepAfterRun", enable:false, value: 0, desc: "设置请求完成后的等待时间"},
@@ -55,6 +65,21 @@ export default {
                 {label: "错误屏蔽", name: "errorContinue", enable:false, value: false, desc: "接口请求失败时是否继续执行后续接口"},
                 {label: "网络代理", name: "proxy", enable:false, value: {url:'',username:'',password:''}, desc: "设置网络代理请求接口，只针对当前接口"},
             ],
+          signOptList:[
+            {label: "设置接口", value: "setting"},
+            {label: "直播相册", value: "live"},
+            {label: "CRM", value: "crm"},
+            {label: "不加密", value: false},
+          ],
+          fromOptList:[
+            {label: "pc端项目", value: "100101"},
+            {label: "M端非直播业务", value: "100001"},
+            {label: "app 端项目", value: "110001"},
+            {label: "Android Piufoto", value: "110003"},
+            {label: "IOS Piufoto", value: "110102"},
+            {label: "Android 新喔图闪传", value: "110004"},
+            {label: "IOS 新喔图闪传", value: "110103"},
+          ],
         }
     },
     created() {

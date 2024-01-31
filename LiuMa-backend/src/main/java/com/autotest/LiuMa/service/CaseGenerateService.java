@@ -38,8 +38,13 @@ public class CaseGenerateService {
     private CaseApiMapper caseApiMapper;
 
     private static final Map<String, Object> ParamTypeMap = new HashMap<String, Object>() {{
-        put("Int", 100); put("Float", 0.1); put("Boolean", true); // 不同类型参数默认值
-        put("String", "test"); put("SpecialStr", "&test@"); put("StringInt", "100");
+        // 设置不同类型参数默认值
+        put("Int", 100);
+        put("Float", 0.1);
+        put("Boolean", true);
+        put("String", "test");
+        put("SpecialStr", "&test@");
+        put("StringInt", "100");
     }};
 
     private static final Map<String, Object[]> ParamRequiredMap = new HashMap<String, Object[]>() {{
@@ -92,6 +97,7 @@ public class CaseGenerateService {
         caseApis.add(caseApi);
         // 再按照规则替换用例接口
         Long index = 1L;    // 接口序号
+
         for(ApiParamRuleDTO ruleDTO: request.getHeader()){
             List<ApiParamVerifyDTO> verifyDTOS = this.analysisRule("请求头", ruleDTO);
             for(ApiParamVerifyDTO verifyDTO: verifyDTOS){
@@ -99,6 +105,7 @@ public class CaseGenerateService {
                 caseApis.add(this.getCaseApi(caseApi, index, "header", verifyDTO, request));
             }
         }
+        // 生成请求体的一些鲁棒性接口
         for(ApiParamRuleDTO ruleDTO: request.getBody()){
             List<ApiParamVerifyDTO> verifyDTOS = this.analysisRule("请求体", ruleDTO);
             for(ApiParamVerifyDTO verifyDTO: verifyDTOS){
@@ -257,15 +264,15 @@ public class CaseGenerateService {
         // 生成需要校验的条目
         List<ApiParamVerifyDTO> verifyDTOS = new ArrayList<>();
         // 参数必填性校验
-        if(!rule.getRequired().equals("None")) {    // 除选择不校验外
+        if(!rule.getRequired().equals("None")) {    // 除必填项字段不校验
             verifyDTOS.addAll(this.getParamVerifyListWithRequired(replaceType, rule.getName(), rule.getType(), rule.getRequired()));
         }
         // 参数类型校验
-        if(!rule.getType().equals("None")) {    // 除选择不校验外
+        if(!rule.getType().equals("None")) {    // 除参数类型选择不校验
             verifyDTOS.addAll(this.getParamVerifyListWithType(replaceType, rule.getName(), rule.getType()));
         }
         // 参数范围校验
-        if(!(rule.getType().equals("Boolean") && rule.getType().equals("None"))){   // 布尔型或者不校验参数类型者不校验范围
+        if(!(rule.getType().equals("Boolean") || rule.getType().equals("None"))){   // 布尔型或者不校验参数类型或者不校验范围
             verifyDTOS.addAll(this.getParamVerifyListWithRandom(replaceType, rule.getName(), rule.getType(), rule.getRandom()));
         }
         return verifyDTOS;
@@ -295,13 +302,15 @@ public class CaseGenerateService {
         // 生成字段类型校验，生成其他类型的数值
         List<ApiParamVerifyDTO> verifyDTOS = new ArrayList<>();
         for(String t: ParamTypeMap.keySet()){
-            if (t.equals(type) || (type.equals("SpecialStr") && t.equals("String") && type.equals("StringInt")) ) {
+            //  去除当前匹配到的类型默认值，或者如果type是SpecialStr时，不使用String；type是String时，不使用SpecialInt；
+            if (t.equals(type) || (type.equals("SpecialStr") && t.equals("String")) || (type.equals("String") && t.equals("StringInt"))) {
                 continue;
             }
             ApiParamVerifyDTO verifyDTO = new ApiParamVerifyDTO();
             verifyDTO.setName(name);
             verifyDTO.setDirection("逆向");
-            verifyDTO.setType(t.equals("SpecialStr")? "String": t);
+            // 如果是特殊符号或者是字符串型的数字，设置为String类型
+            verifyDTO.setType((t.equals("SpecialStr") || t.equals("StringInt"))? "String": t);
             verifyDTO.setDescription(String.format("【逆向用例】校验%s%s类型字段%s输入%s类型值:%s",
                     replaceType, type, name, t, ParamTypeMap.get(t)));
             verifyDTO.setValue(ParamTypeMap.get(t));
@@ -321,17 +330,24 @@ public class CaseGenerateService {
             verifyDTO.setType("String");
             verifyDTO.setDescription(String.format("【%s用例】校验%s%s类型字段%s%s:%s",
                     randomRule[0].toString(), replaceType, type, name, randomRule[1].toString(), randomRule[2].toString()));
-            if(type.equals("String")){
-                int value = (int) ((long) randomRule[2]);
-                verifyDTO.setValue(StringUtils.randomSimpleString(value));
-            }else if(type.equals("SpecialStr")){
-                int value = (int) ((long) randomRule[2]);
-                verifyDTO.setValue(StringUtils.randomSpecialString(value));
-            }else if(type.equals("StringInt")){
-                verifyDTO.setValue(randomRule[2].toString());
-            }else {
-                verifyDTO.setType(type);
-                verifyDTO.setValue(randomRule[2]);
+            switch (type) {
+                case "String": {
+                    int value = (int) ((long) randomRule[2]);
+                    verifyDTO.setValue(StringUtils.randomSimpleString(value));
+                    break;
+                }
+                case "SpecialStr": {
+                    int value = (int) ((long) randomRule[2]);
+                    verifyDTO.setValue(StringUtils.randomSpecialString(value));
+                    break;
+                }
+                case "StringInt":
+                    verifyDTO.setValue(randomRule[2].toString());
+                    break;
+                default:
+                    verifyDTO.setType(type);
+                    verifyDTO.setValue(randomRule[2]);
+                    break;
             }
             verifyDTOS.add(verifyDTO);
         }
@@ -341,7 +357,7 @@ public class CaseGenerateService {
     private List<Object[]> analysisRandom(String random){
         // 返回边界值数据，用【正向】，【描述】，【数值】
         List<Object[]> result = new ArrayList<>();
-        if(random == null || random.equals("")){
+        if(random == null || random.isEmpty()){
             return result;
         }
         if(!((random.startsWith("[") || random.startsWith("(")) &&
