@@ -26,12 +26,12 @@
                          @change="changeValue(scope.row)" placeholder="登录密码"/>
                     </div>
                     <el-select :disabled="!scope.row.enable" v-else-if="scope.row.name === 'encryption'" style="width: 95%" v-model="scope.row.value">
-                      <el-option v-for="item in signOptList" :key="item.value" :label="item.label" :value="item.value"/>
+                      <el-option v-for="item in signOptList" :key="item.value" :label="item.label" :value="item.value" @click.native="changeValue(scope.row)"/>
                     </el-select>
-                  <el-select :disabled="!scope.row.enable" v-else-if="scope.row.name === 'from'" style="width: 95%" v-model="scope.row.value">
-                    <el-option v-for="item in fromOptList" :key="item.value" :label="item.label" :value="item.value"/>
+                  <el-select :disabled="!scope.row.enable" v-else-if="scope.row.name === 'From'" style="width: 95%" v-model="scope.row.value">
+                    <el-option v-for="item in fromOptList" :key="item.value" :label="item.label" :value="item.value" @click.native="changeValue(scope.row)"/>
                   </el-select>
-                  <el-input :disabled="!scope.row.enable" v-else-if="scope.row.name === 'token'" style="width: 95%" v-model="scope.row.value"> </el-input>
+                  <el-input :disabled="!scope.row.enable" v-else-if="scope.row.name === 'token'" style="width: 95%" v-model="scope.row.value" @change="changeValue(scope.row)"> </el-input>
                     <div v-else>
                         <el-radio-group :disabled="!scope.row.enable" v-model="scope.row.value"  @change="changeValue(scope.row)">
                             <el-radio :label="true">开启</el-radio>
@@ -54,7 +54,7 @@ export default {
             settingsList:[
                 {label: "接口加密方式", name: "encryption", enable:false, value: "setting", desc: "使用的接口加密方式"},
                 {label: "使用token", name: "token", enable:false, value: "{{token}}", desc: "请求时使用token"},
-                {label: "请求来源", name: "from", enable:false, value: "100101", desc: "接口请求来源"},
+                {label: "请求来源", name: "From", enable:false, value: "100101", desc: "接口请求来源"},
                 {label: "超时时间", name: "timeout", enable:false, value: 30, desc: "接口请求超时时间"},
                 {label: "前置等待", name: "sleepBeforeRun", enable:false, value: 0, desc: "设置发送请求前的等待时间"},
                 {label: "后置等待", name: "sleepAfterRun", enable:false, value: 0, desc: "设置请求完成后的等待时间"},
@@ -109,6 +109,7 @@ export default {
             }
         },
         changeValue(row){
+            console.log(row)
             for(let i=0;i<this.settings.length;i++){
                 if(this.settings[i].name === row.name){
                     this.settings[i].value = row.name==="proxy"?JSON.stringify(row.value):row.value;

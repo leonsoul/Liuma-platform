@@ -286,14 +286,6 @@ export default new Router({
                 requireAuth: true
             }
         },{
-            path: '/caseCenter/caseManage/apiCase/:type/:caseId',
-            name: 'API用例复用',
-            component: ApiCaseEdit,
-            meta: {
-                requirePerm: "NORMAL_MENU",
-                requireAuth: true
-            }
-        },{
             path: '/caseCenter/caseManage/webCase/:type/:caseId',
             name: 'WEB用例编辑',
             component: WebCaseEdit,
