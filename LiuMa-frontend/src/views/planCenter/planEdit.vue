@@ -71,7 +71,7 @@
         <el-row :gutter="40">
             <el-col :span="16">
                 <el-form-item label="计划描述" style="margin-bottom:0px">
-                    <el-input size="small" style="width: 100%" :autosize="{ minRows: 4}" type="textarea" clearable placeholder="请输入计划描述" 
+                    <el-input size="small" style="width: 100%" :autosize="{ minRows: 4}" type="textarea" clearable placeholder="请输入计划描述"
                         v-model="planForm.description" maxlength="200" show-word-limit>
                     </el-input>
                 </el-form-item>
@@ -147,6 +147,8 @@ export default {
             },
             frequencyList: [
                 {value: "ONLY_ONE", label: "仅一次"},
+                {value: "FIVE_MINUTES", label: "每五分钟"},
+                {value: "TEN_Minutes", label: "每十分钟"},
                 {value: "HALF_HOUR", label: "每半小时"},
                 {value: "ONE_HOUR", label: "每小时"},
                 {value: "HALF_DAY", label: "每半天"},
@@ -154,7 +156,7 @@ export default {
                 {value: "ONE_WEEK", label: "每周"},
                 {value: "ONE_MONTH", label: "每月"},
             ],
-            collectionListData: [], 
+            collectionListData: [],
             rules: {
                 name: [{ required: true, message: '计划名称不能为空', trigger: 'blur' }],
                 versionId: [{ required: true, message: '版本不能为空', trigger: 'blur' }],
@@ -165,7 +167,7 @@ export default {
                             { validator: validateStartTime, trigger: 'blur', required: true }],
                 frequency: [{ required: true, message: '执行频率不能为空', trigger: 'blur' }],
                 planCollections: [{ required: true, message: '请至少选择一条测试集合', trigger: 'blur' }]
-            }    
+            }
         }
     },
     created() {
@@ -242,7 +244,7 @@ export default {
                     return false;
                 }
             });
-            
+
         },
     }
 }

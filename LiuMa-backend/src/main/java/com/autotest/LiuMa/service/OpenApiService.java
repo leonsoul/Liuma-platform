@@ -247,7 +247,7 @@ public class OpenApiService {
                 if(planNotice == null){
                     return; //没有配置不通知
                 }
-                if(planNotice.getCondition().equals("F") && reportStatus.equals(ReportStatus.SUCCESS.toString())){
+                if("F".equals(planNotice.getCondition()) && reportStatus.equals(ReportStatus.SUCCESS.toString())){
                     return; // 仅失败通知且结果成功不通知
                 }
                 Notification notification = notificationService.getNotificationById(planNotice.getNotificationId());
