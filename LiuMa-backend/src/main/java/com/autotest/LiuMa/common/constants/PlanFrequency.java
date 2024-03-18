@@ -2,6 +2,8 @@ package com.autotest.LiuMa.common.constants;
 
 public enum PlanFrequency {
     ONLY_ONE("ONLY_ONE"),
+    FIVE_MINUTES("FIVE_MINUTES"),
+    TEN_Minutes("TEN_Minutes"),
     HALF_HOUR("HALF_HOUR"),
     ONE_HOUR("ONE_HOUR"),
     HALF_DAY("HALF_DAY"),

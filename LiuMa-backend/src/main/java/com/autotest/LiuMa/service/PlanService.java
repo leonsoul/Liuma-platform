@@ -141,9 +141,14 @@ public class PlanService {
     }
 
     public static Long getNextRunTime(Long lastTime, String frequency){
-        if(frequency.equals(PlanFrequency.HALF_HOUR.toString())){
+
+        if(frequency.equals(PlanFrequency.FIVE_MINUTES.toString())){
+            return lastTime + 5*60*1000;
+        }else if (frequency.equals(PlanFrequency.TEN_Minutes.toString())){
+            return lastTime + 10*60*1000;
+        }else if (frequency.equals(PlanFrequency.HALF_HOUR.toString())){
             return lastTime + 30*60*1000;
-        }else if (frequency.equals(PlanFrequency.ONE_HOUR.toString())){
+        } else if (frequency.equals(PlanFrequency.ONE_HOUR.toString())){
             return lastTime + 60*60*1000;
         }else if (frequency.equals(PlanFrequency.HALF_DAY.toString())){
             return lastTime + 12*60*60*1000;
