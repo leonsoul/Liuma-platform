@@ -5,7 +5,7 @@
     <div>
         <div class="disabled-view" v-if="device.status==='testing'"/>
         <el-row :gutter="10">
-            <el-col :span="6">
+            <el-col :span="6" style="max-width: 20%">
                 <div class="screen-header">
                     <div style="float:left; margin: 12px 4px" class="long-text">
                         <el-tooltip :content="device.serial" placement="bottom">
@@ -17,7 +17,7 @@
                     </div>
                 </div>
                 <div class="screen-body" :style="'height: '+ screenHeight +'px'">
-                    <video id="screen-player" class="scrcpy-screen" muted autoplay></video>
+                    <video id="screen-player" class="scrcpy-screen" muted autoplay style="height: 100%;width: 100%;position: absolute;left: 0%;"></video>
                     <span class="finger finger-0" style="transform: translate3d(200px, 100px, 0px)"></span>
                     <span class="finger finger-1" style="transform: translate3d(200px, 100px, 0px)"></span>
                 </div>
@@ -223,12 +223,17 @@ export default {
         },
         getScreenHeight(size){
             this.screenWidth = document.getElementsByClassName("screen-body")[0].offsetWidth;
+
             this.drawerWidth = parseInt(this.screenWidth*3)+40;
             if(!size){
                 return;
             }
             const s = size.split("x");
-            this.screenHeight = s[1]/s[0]*(this.screenWidth-4)-10;
+
+            let tmpScreenHeight = s[1]*(this.screenWidth-4)/s[0];
+            // this.screenHeight = tmpScreenHeight>720?720:tmpScreenHeight;
+            this.screenHeight = tmpScreenHeight;
+            console.log(s[1], s[0], this.screenWidth, this.screenHeight)
         },
         verifyFile(file) {
             let s = file.name.split(".");
@@ -336,7 +341,7 @@ export default {
                     let url = '/autotest/device/active/' + this.deviceId;
                     this.$post(url, null, response =>{
                         if(response.data){  // 更新成功
-                            this.closeWindowWhenReleased(interval) 
+                            this.closeWindowWhenReleased(interval)
                         }else{  // 设备可能已经离线
                             this.$message.warning('设备已经被释放了!');
                             this.device.serial = null;
@@ -406,7 +411,7 @@ export default {
                     this.$message.error('设备操作异常, 请刷新页面');
                     this.websockets.touch = null;
                 }
-                
+
             };
 
             // touch事件
