@@ -336,7 +336,7 @@ export default {
                     let url = '/autotest/device/active/' + this.deviceId;
                     this.$post(url, null, response =>{
                         if(response.data){  // 更新成功
-                            this.closeWindowWhenReleased(interval) 
+                            this.closeWindowWhenReleased(interval)
                         }else{  // 设备可能已经离线
                             this.$message.warning('设备已经被释放了!');
                             this.device.serial = null;
@@ -406,7 +406,7 @@ export default {
                     this.$message.error('设备操作异常, 请刷新页面');
                     this.websockets.touch = null;
                 }
-                
+
             };
 
             // touch事件
